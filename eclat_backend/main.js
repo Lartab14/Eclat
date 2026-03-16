@@ -11,9 +11,12 @@ const port = process.env.PORT || 3001;
 app.use(cors({
   origin: [
     'http://localhost:3000',
+    'https://frontend-git-main-lauras-projects-3e7a1422.vercel.app',
     process.env.FRONTEND_URL
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(
