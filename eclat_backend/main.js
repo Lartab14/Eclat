@@ -6,10 +6,13 @@ const prisma = require("./src/prisma");
 const cors = require('cors');
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 app.use(cors({
-  origin: 'http://localhost:3000', // Puerto de tu frontend
+  origin: [
+    'http://localhost:3000',
+    process.env.FRONTEND_URL
+  ],
   credentials: true
 }));
 
@@ -32,7 +35,7 @@ app.get('/', (req, res) => {
   res.json({ message: 'API funcionando correctamente' });
 });
 
-// Middlewaxre de manejo de errores
+// Middleware de manejo de errores
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({ 
@@ -47,5 +50,5 @@ app.use((req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
+  console.log(`Servidor corriendo en el puerto ${port}`);
 });
