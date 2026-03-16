@@ -35,7 +35,7 @@ export default function Login({ onLoginSuccess }) {
         setError('');
 
         try {
-            const response = await fetch(`${API_URL}/usuarios/auth`, {
+            fetch(`${API_URL}/api/usuarios/auth`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ export default function Login({ onLoginSuccess }) {
         setIsLoading(true);
 
         try {
-            const response = await fetch(`${API_URL}/usuarios`, {
+            fetch(`${API_URL}/api/usuarios`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -119,7 +119,7 @@ export default function Login({ onLoginSuccess }) {
 
             // Después de registrarse, hacer login automático
             try {
-                const loginResponse = await fetch(`${API_URL}/usuarios/auth`, {
+                fetch(`${API_URL}/api/usuarios/auth`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
