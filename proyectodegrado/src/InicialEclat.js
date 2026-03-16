@@ -90,7 +90,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
       setIsLoadingFeatured(true);
       setErrorFeatured(null);
       try {
-        const response = await fetch(`${API_URL}/api/designs/random?limit=6`);
+        const response = await fetch(`${API_URL}/designs/random?limit=6`);
         if (!response.ok) throw new Error('Error al cargar diseños destacados');
         const data = await response.json();
         console.log('Diseños destacados data:', data);
@@ -143,7 +143,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
       setIsSearching(true);
       setSearchError('');
       try {
-        const url = `${API_URL}/api/usuarios/buscar?q=${encodeURIComponent(searchQuery.trim())}`;
+        const url = `${API_URL}/usuarios/buscar?q=${encodeURIComponent(searchQuery.trim())}`;
         console.log('🔍 Buscando en:', url);
         const res = await fetch(url);
         if (!res.ok) {
