@@ -1,6 +1,9 @@
 {
   "name": "eclat_backend",
   "version": "1.0.0",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "description": "",
   "license": "ISC",
   "author": "",
@@ -26,4 +29,5 @@
     "nodemon": "^3.1.11",
     "prisma": "^7.1.0"
   }
+
 }
