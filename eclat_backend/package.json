@@ -11,7 +11,8 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node main.js",
+  "start": "npx prisma generate && node main.js",
+
     "dev": "nodemon main.js"
   },
   "dependencies": {
