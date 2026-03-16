@@ -43,7 +43,7 @@ export default function SearchBar({ onOpenPublicProfile }) {
             setIsSearching(true);
             setSearchError('');
             try {
-                const res = await fetch(`${API_URL}/api/usuarios/buscar?q=${encodeURIComponent(searchQuery.trim())}`);
+                const res = await fetch(`${API_URL}/usuarios/buscar?q=${encodeURIComponent(searchQuery.trim())}`);
                 if (!res.ok) throw new Error('Error al buscar');
                 const data = await res.json();
                 setSearchResults(data.usuarios || []);

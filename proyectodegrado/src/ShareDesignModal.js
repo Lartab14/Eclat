@@ -75,7 +75,7 @@ export default function ShareDesignModal({ isOpen, onClose, userData, onPostCrea
             const imageFormData = new FormData();
             imageFormData.append('image', selectedFile);
 
-            const uploadRes = await fetch(`${API_URL}/api/upload/image`, {
+            const uploadRes = await fetch(`${API_URL}/upload/image`, {
                 method: 'POST',
                 body: imageFormData
             });

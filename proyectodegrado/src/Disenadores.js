@@ -35,7 +35,7 @@ export default function Disenadores({
     setError(null);
 
     try {
-      const response = await fetch(`${API_URL}/api/usuarios/aleatorios?limit=12`);
+      const response = await fetch(`${API_URL}/usuarios/aleatorios?limit=12`);
 
       if (!response.ok) {
         throw new Error('Error al cargar los diseñadores');

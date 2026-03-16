@@ -27,7 +27,7 @@ export default function PublicProfile({ userId, onBack, loggedUserId }) {
         const fetchProfile = async () => {
             try {
                 setLoading(true);
-                const response = await fetch(`${API_URL}/api/usuarios/${userId}`);
+                const response = await fetch(`${API_URL}/usuarios/${userId}`);
                 if (!response.ok) throw new Error('Error al cargar perfil');
 
                 const data = await response.json();

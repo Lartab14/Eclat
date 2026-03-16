@@ -62,7 +62,7 @@ function SubirDiseños({ onBack, userData, onOpenWorkspace }) {
           formData.append('id_usuario', userData.id_usuario);
         }
 
-        const response = await fetch(`${API_URL}/api/upload/image`, {
+        const response = await fetch(`${API_URL}/upload/image`, {
           method: 'POST',
           body: formData,
         });

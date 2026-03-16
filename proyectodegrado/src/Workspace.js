@@ -529,14 +529,14 @@ export default function Workspace({ onBack, userData, draftDesign }) {
             const formData = new FormData();
             formData.append('image', file);
 
-            const uploadRes = await fetch(`${API_URL}/api/upload/image`, { method: 'POST', body: formData });
+            const uploadRes = await fetch(`${API_URL}/upload/image`, { method: 'POST', body: formData });
             if (!uploadRes.ok) throw new Error('Error al subir la imagen');
             const uploadData = await uploadRes.json();
             const imageUrl = uploadData.imageUrl;
 
             if (draftId) {
                 try {
-                    await fetch(`${API_URL}/api/designs/remove/${draftId}`, {
+                    await fetch(`${API_URL}/designs/remove/${draftId}`, {
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ id_usuario: userData.id_usuario }),
@@ -546,7 +546,7 @@ export default function Workspace({ onBack, userData, draftDesign }) {
                 }
             }
 
-            const designRes = await fetch(`${API_URL}/api/designs/with-file`, {
+            const designRes = await fetch(`${API_URL}/designs/with-file`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

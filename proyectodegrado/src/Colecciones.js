@@ -36,7 +36,7 @@ export default function Colecciones({
     setError(null);
 
     try {
-      const response = await fetch(`${API_URL}/api/designs/random?limit=16`);
+      const response = await fetch(`${API_URL}/designs/random?limit=16`);
 
       if (!response.ok) {
         throw new Error('Error al cargar las colecciones');
