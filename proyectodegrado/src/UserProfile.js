@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Settings, MapPin, Calendar, Users, Heart, MessageCircle, Camera, Edit2, Upload, Plus, Image, FileText, X, Save, Trash2 } from 'lucide-react';
 import './UserProfile.css';
+import API_URL from './config';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = fetch(`${API_URL}/api/usuarios/auth`);
 
 export default function UserProfile({ onBack, onLogout, userData: userDataProp, onOpenWorkspace, onUpdateProfile }) {
   const [activeTab, setActiveTab] = useState('public');
