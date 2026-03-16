@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, MapPin, Calendar, Users, Heart, MessageCircle, X } from 'lucide-react';
 import './UserProfile.css';
-import API_URL from './config';
 
 export default function PublicProfile({ userId, onBack, loggedUserId }) {
     const [profileData, setProfileData] = useState(null);
@@ -21,7 +20,7 @@ export default function PublicProfile({ userId, onBack, loggedUserId }) {
     const [publicDesigns, setPublicDesigns] = useState([]);
     const [isLoadingDesigns, setIsLoadingDesigns] = useState(false);
 
-    const API_URL = process.env.REACT_APP_API_URL || fetch(`${API_URL}/api/usuarios/auth`);
+   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
     // Cargar datos del perfil
     useEffect(() => {

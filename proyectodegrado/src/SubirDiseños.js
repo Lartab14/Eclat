@@ -1,9 +1,8 @@
 import React, { useRef, useState } from 'react';
 import { ArrowLeft, Upload, Image, Plus, CheckCircle, X, FileText } from 'lucide-react';
 import './SubirDiseños.css';
-import API_URL from './config';
 
-const API_URL = process.env.REACT_APP_API_URL || fetch(`${API_URL}/api/usuarios/auth`);
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 function SubirDiseños({ onBack, userData, onOpenWorkspace }) {
   const uploadInputRef = useRef(null);

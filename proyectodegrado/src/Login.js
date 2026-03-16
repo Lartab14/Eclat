@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { Mail, Lock, Eye, EyeOff, User, Sparkles } from 'lucide-react';
 import './Login.css';
 import LogoEclat from './img/LogoEclat.png';
-import API_URL from './config';
 
 // Configuración de la URL base del API
-const API_URL = fetch(`${API_URL}/api/usuarios/auth`);
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 export default function Login({ onLoginSuccess }) {
     const [activeTab, setActiveTab] = useState('login');

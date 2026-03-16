@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Search, Bell, User, Users, Heart, Eye, MapPin, Sparkles } from 'lucide-react';
 import SearchBar from './Searchbar';  // ← NUEVO
 import './Disenadores.css';
-import API_URL from './config';
 
 // Importar imágenes
 import LogoEclat from './img/LogoEclat.png';
@@ -11,7 +10,7 @@ import Eclat from './img/Eclat.png';
 // Importar VIDEO del hero (en lugar de imagen)
 import HeroVideo from './img/Disenadores.mp4'; 
 
-const API_URL = process.env.REACT_APP_API_URL || fetch(`${API_URL}/api/usuarios/auth`);
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 export default function Disenadores({
   onNavigateHome,

@@ -2,9 +2,8 @@
 import React, { useState, useRef } from 'react';
 import { X, Upload, Image as ImageIcon, FileText, Lock, Globe, Eye, EyeOff } from 'lucide-react';
 import './ShareDesignModal.css';
-import API_URL from './config';
 
-const API_URL = process.env.REACT_APP_API_URL || fetch(`${API_URL}/api/usuarios/auth`);
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 export default function ShareDesignModal({ isOpen, onClose, userData, onPostCreated }) {
     const [formData, setFormData] = useState({

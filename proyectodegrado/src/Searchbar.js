@@ -1,9 +1,8 @@
 // SearchBar.js - Componente reutilizable de búsqueda
 import React, { useState, useEffect, useRef } from 'react';
 import { Search } from 'lucide-react';
-import API_URL from './config';
 
-const API_URL = process.env.REACT_APP_API_URL || fetch(`${API_URL}/api/usuarios/auth`);
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 export default function SearchBar({ onOpenPublicProfile }) {
     const [searchOpen, setSearchOpen] = useState(false);

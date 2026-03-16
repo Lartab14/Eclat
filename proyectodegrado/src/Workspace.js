@@ -26,9 +26,8 @@ import {
 } from 'lucide-react';
 import './Workspace.css';
 import LogoEclat from './img/EclatNegativo.png';
-import API_URL from './config';
 
-const API_URL = process.env.REACT_APP_API_URL || fetch(`${API_URL}/api/usuarios/auth`);
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 export default function Workspace({ onBack, userData, draftDesign }) {
     const [activeTool, setActiveTool] = useState('pincel');

@@ -1,7 +1,6 @@
 // designService.js - FRONTEND (React)
 // Este archivo va en: frontend/src/services/designService.js
-import API_URL from './config';
-const API_URL = process.env.REACT_APP_API_URL || fetch(`${API_URL}/api/usuarios/auth`);
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 // Crear un nuevo diseño con archivo (para perfil de usuario)
 export const crearDiseñoConArchivo = async (diseñoData) => {

@@ -3,7 +3,6 @@ import {
   Sparkles, Bell, Search, Play, Palette, Grid, Users, TrendingUp, Code, Layers, Heart, Star, User, ChevronLeft, RotateCcw,
   RotateCw, Save, Pen, Eraser, Trash2, Plus, Eye, Lock, Copy, Minus, Circle, Square, Type
 } from 'lucide-react';
-import API_URL from './config';
 import './InicialEclat.css';
 import ShareDesignModal from './ShareDesignModal';
 // Importar imágenes
@@ -57,7 +56,7 @@ export default function InicialEclat({
   const [isLoadingFeatured, setIsLoadingFeatured] = useState(true);
   const [errorFeatured, setErrorFeatured] = useState(null);
 
-  const API_URL = process.env.REACT_APP_API_URL || fetch(`${API_URL}/api/usuarios/auth`);
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
   const designs = [
     { id: 1, image: diseño1, className: 'design-card-blue' },
