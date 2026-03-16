@@ -1,0 +1,833 @@
+/* Workspace.css - Espacio de trabajo completo en pantalla */
+.workspace-container {
+    min-height: 100vh;
+    background: #2b2b2b;
+    display: flex;
+    flex-direction: column;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #e5e5e5;
+}
+
+/* Header del Workspace */
+.workspace-header {
+    background: #1e1e1e;
+    border-bottom: 1px solid #3a3a3a;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.workspace-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.workspace-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: #e5e5e5;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.workspace-back-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #8b9aef;
+}
+
+.workspace-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.workspace-logo-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    object-fit: contain;
+}
+
+.workspace-logo-text {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #e5e5e5;
+}
+
+.workspace-title {
+    font-size: 0.95rem;
+    color: #a0a0a0;
+    margin: 0;
+}
+
+.workspace-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.workspace-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: #e5e5e5;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.workspace-action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #8b9aef;
+}
+
+.workspace-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.workspace-action-btn:disabled:hover {
+    background: transparent;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.workspace-save-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    font-weight: 600;
+}
+
+.workspace-save-btn:hover {
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    transform: translateY(-1px);
+}
+
+/* Main Content */
+.workspace-main {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Panel Izquierdo - Herramientas */
+.workspace-left-panel {
+    background: #252525;
+    border-right: 1px solid #3a3a3a;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.workspace-panel-section {
+    padding: 1.5rem;
+    border-bottom: 1px solid #3a3a3a;
+}
+
+.workspace-section-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #a0a0a0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+}
+
+/* Herramientas */
+.workspace-tools-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+.workspace-tool-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.875rem 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #e5e5e5;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.workspace-tool-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #8b9aef;
+}
+
+.workspace-tool-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+    color: white;
+}
+
+.workspace-tool-icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* Tamaño */
+.workspace-size-control {
+    margin-bottom: 1rem;
+}
+
+.workspace-size-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.workspace-size-label {
+    font-size: 0.9rem;
+    color: #a0a0a0;
+}
+
+.workspace-size-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e5e5e5;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+}
+
+.workspace-slider {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+}
+
+.workspace-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+}
+
+.workspace-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+}
+
+/* Colores */
+.workspace-color-preview {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.workspace-color-swatch {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.workspace-color-swatch:hover {
+    border-color: #8b9aef;
+    transform: scale(1.05);
+}
+
+.workspace-color-code {
+    flex: 1;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    color: #e5e5e5;
+    text-align: center;
+}
+
+.workspace-color-palette {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0.5rem;
+}
+
+.workspace-palette-color {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.workspace-palette-color:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.workspace-palette-color.selected {
+    border-color: white;
+}
+
+/* Botones de acción */
+.workspace-action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.workspace-action-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #e5e5e5;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.workspace-action-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #8b9aef;
+}
+
+/* Panel Central - Canvas */
+.workspace-center-panel {
+    background: #1e1e1e;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: auto;
+}
+
+.workspace-canvas-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #3a3a3a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #252525;
+}
+
+.workspace-canvas-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.workspace-canvas-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #e5e5e5;
+    margin: 0;
+}
+
+.workspace-canvas-size {
+    font-size: 0.85rem;
+    color: #a0a0a0;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+}
+
+.workspace-view-modes {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 0.25rem;
+}
+
+.workspace-view-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: #a0a0a0;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.workspace-view-btn:hover {
+    color: #e5e5e5;
+}
+
+.workspace-view-btn.active {
+    background: rgba(139, 154, 239, 0.2);
+    color: #8b9aef;
+}
+
+/* Canvas Area */
+.workspace-canvas-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: auto;
+    background: #1a1a1a;
+}
+
+.workspace-canvas {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    position: relative;
+    transition: transform 0.1s ease-out;
+    image-rendering: crisp-edges;
+}
+
+.workspace-canvas-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #9ca3af;
+    pointer-events: none;
+}
+
+.workspace-placeholder-icon {
+    margin: 0 auto 1rem;
+    color: #6b7280;
+}
+
+/* Canvas Controls */
+.workspace-canvas-controls {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+    background: rgba(37, 37, 37, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 0.5rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.workspace-control-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #e5e5e5;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.workspace-control-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #8b9aef;
+}
+
+.workspace-control-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: transparent;
+    color: white;
+}
+
+.workspace-control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.workspace-control-btn:disabled:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Panel Derecho - Capas */
+.workspace-right-panel {
+    background: #252525;
+    border-left: 1px solid #3a3a3a;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.workspace-layers-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #3a3a3a;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.workspace-layers-title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #e5e5e5;
+}
+
+.workspace-add-layer-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.workspace-add-layer-btn:hover {
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    transform: scale(1.05);
+}
+
+/* Layers List */
+.workspace-layers-list {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.workspace-layer-item {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.workspace-layer-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(139, 154, 239, 0.3);
+}
+
+.workspace-layer-item.active {
+    background: rgba(139, 154, 239, 0.15);
+    border-color: #8b9aef;
+}
+
+.workspace-layer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.workspace-layer-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #e5e5e5;
+}
+
+.workspace-layer-opacity {
+    font-size: 0.8rem;
+    color: #a0a0a0;
+}
+
+.workspace-layer-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.workspace-layer-action-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: #a0a0a0;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.workspace-layer-action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e5e5e5;
+}
+
+.workspace-layer-action-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.workspace-layer-opacity-slider {
+    width: 100%;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+}
+
+.workspace-layer-opacity-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: #8b9aef;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.workspace-layer-opacity-slider::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    background: #8b9aef;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .workspace-main {
+        grid-template-columns: 1fr;
+    }
+
+    .workspace-left-panel,
+    .workspace-right-panel {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .workspace-header {
+        padding: 0.5rem 1rem;
+    }
+
+    .workspace-logo-text {
+        display: none;
+    }
+
+    .workspace-canvas {
+        min-width: 100%;
+        min-height: 300px;
+    }
+
+    .workspace-canvas-controls {
+        bottom: 1rem;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.workspace-container {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* ===== Modal de Guardar ===== */
+.workspace-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.workspace-modal {
+    background: #252525;
+    border: 1px solid #3a3a3a;
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.25s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.workspace-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    color: #e5e5e5;
+}
+
+.workspace-modal-header h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+    color: #e5e5e5;
+}
+
+.workspace-modal-subtitle {
+    font-size: 0.875rem;
+    color: #a0a0a0;
+    margin: 0 0 1.5rem;
+    line-height: 1.5;
+}
+
+.workspace-modal-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #a0a0a0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+.workspace-modal-input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    color: #e5e5e5;
+    font-size: 0.95rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+    margin-bottom: 1.5rem;
+}
+
+.workspace-modal-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+}
+
+.workspace-modal-input::placeholder {
+    color: #5a5a5a;
+}
+
+.workspace-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+.workspace-modal-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.workspace-modal-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.workspace-modal-btn-cancel {
+    background: rgba(255, 255, 255, 0.07);
+    color: #a0a0a0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.workspace-modal-btn-cancel:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+    color: #e5e5e5;
+}
+
+.workspace-modal-btn-save {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    min-width: 110px;
+    justify-content: center;
+}
+
+.workspace-modal-btn-save:hover:not(:disabled) {
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.45);
+    transform: translateY(-1px);
+}
+
+.workspace-modal-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
