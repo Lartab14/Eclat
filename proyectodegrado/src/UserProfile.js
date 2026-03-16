@@ -98,7 +98,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
       }
 
       const data = await response.json();
-      return `http://localhost:3001${data.imageUrl}`;
+      return `${API_URL}${data.imageUrl}`;
     } catch (error) {
       console.error('❌ Error al subir imagen:', error);
       throw error;
@@ -277,7 +277,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) {
       return raw;
     }
-    return `http://localhost:3001${raw.startsWith('/') ? '' : '/'}${raw}`;
+    return `${API_URL}${raw.startsWith('/') ? '' : '/'}${raw}`;
   };
 
   return (
