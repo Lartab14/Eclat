@@ -88,7 +88,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     formData.append('image', file);
 
     try {
-      const response = await fetch(`${API_URL}/upload/image`, {
+      const response = await fetch(`${API_URL}/upload/${userDataProp.id}/image`, {
         method: 'POST',
         body: formData
       });
@@ -106,34 +106,46 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
   };
 
   const handleCoverChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setIsUploadingCover(true);
-      try {
-        const imageUrl = await uploadImageToServer(file);
-        setCoverImage(imageUrl);
-      } catch (error) {
-        alert('Error al subir la imagen de portada');
-      } finally {
-        setIsUploadingCover(false);
-      }
+  const file = e.target.files[0];
+  if (file) {
+    setIsUploadingCover(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const response = await fetch(`${API_URL}/upload/${userDataProp.id_usuario}/cover`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+      setCoverImage(data.imageUrl);
+    } catch (error) {
+      alert('Error al subir la imagen de portada');
+    } finally {
+      setIsUploadingCover(false);
     }
-  };
+  }
+};
 
   const handleAvatarChange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setIsUploadingAvatar(true);
-      try {
-        const imageUrl = await uploadImageToServer(file);
-        setAvatarImage(imageUrl);
-      } catch (error) {
-        alert('Error al subir la imagen de perfil');
-      } finally {
-        setIsUploadingAvatar(false);
-      }
+  const file = e.target.files[0];
+  if (file) {
+    setIsUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const response = await fetch(`${API_URL}/upload/${userDataProp.id_usuario}/avatar`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await response.json();
+      setAvatarImage(data.imageUrl);
+    } catch (error) {
+      alert('Error al subir la imagen de perfil');
+    } finally {
+      setIsUploadingAvatar(false);
     }
-  };
+  }
+};
 
   const handleInputChange = (field, value) => {
     setEditData(prev => ({
