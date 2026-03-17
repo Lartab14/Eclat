@@ -18,6 +18,8 @@ import './Disenadores.css';
 import './Tendencias.css';
 import './Workspace.css';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+
 function App() {
   const [currentView, setCurrentView] = useState('login');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -29,7 +31,6 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     const savedUser = localStorage.getItem('userData');
-
     if (token && savedUser) {
       try {
         const usuario = JSON.parse(savedUser);
@@ -37,17 +38,31 @@ function App() {
         setUserData(usuario);
         setCurrentView('home');
       } catch (e) {
-        // Si el JSON está corrupto, limpiar
         localStorage.removeItem('authToken');
         localStorage.removeItem('userData');
       }
     }
   }, []);
 
-  // Función para manejar el login exitoso
-  const handleLoginSuccess = (usuario, token) => {
-    console.log('Login exitoso:', usuario);
+  // ✅ Refrescar stats del usuario desde la BD
+  const refrescarStats = async (userId) => {
+    if (!userId) return;
+    try {
+      const res = await fetch(`${API_URL}/usuarios/${userId}`);
+      const data = await res.json();
+      if (data.stats) {
+        setUserData(prev => {
+          const updated = { ...prev, stats: data.stats };
+          localStorage.setItem('userData', JSON.stringify(updated));
+          return updated;
+        });
+      }
+    } catch (e) {
+      console.error('Error refrescando stats:', e);
+    }
+  };
 
+  const handleLoginSuccess = (usuario, token) => {
     const user = {
       id: usuario.id_usuario,
       id_usuario: usuario.id_usuario,
@@ -57,17 +72,13 @@ function App() {
       correo: usuario.correo,
       ...usuario
     };
-
-    // ✅ Persistir sesión en localStorage
     localStorage.setItem('authToken', token);
     localStorage.setItem('userData', JSON.stringify(user));
-
     setIsAuthenticated(true);
     setUserData(user);
     setCurrentView('home');
   };
 
-  // Función para cerrar sesión
   const handleLogout = () => {
     setIsAuthenticated(false);
     setUserData(null);
@@ -78,46 +89,35 @@ function App() {
     setCurrentView('login');
   };
 
-  // ✅ Función para actualizar el perfil y persistirlo
   const handleUpdateProfile = (updatedProfile) => {
     const newData = { ...userData, ...updatedProfile };
     localStorage.setItem('userData', JSON.stringify(newData));
     setUserData(newData);
   };
 
-  // Función para abrir el editor
-  const handleOpenEditor = () => {
-    setCurrentView('editor');
-  };
+  const handleOpenEditor = () => setCurrentView('editor');
 
-  // Función para abrir el workspace
   const handleOpenWorkspace = (design = null) => {
-    console.log('Abriendo Workspace:', design ? 'Editando diseño' : 'Nuevo diseño');
     setEditingDesign(design);
     setCurrentView('workspace');
   };
 
-  // Función para volver a home
-  const handleBackToHome = () => {
-    setCurrentView('home');
-  };
+  const handleBackToHome = () => setCurrentView('home');
 
-  // Función para volver al perfil desde workspace
   const handleBackToProfile = () => {
     setEditingDesign(null);
     setCurrentView('profile');
   };
 
-  // Función para abrir el perfil propio
+  // ✅ Al abrir el perfil propio, refrescar stats
   const handleOpenProfile = () => {
+    if (userData?.id_usuario) refrescarStats(userData.id_usuario);
     setCurrentView('profile');
   };
 
-  // Función para abrir perfil público de otro usuario
   const handleOpenPublicProfile = (userId) => {
-    console.log('🔍 Abriendo perfil público de usuario:', userId);
-    if (userData && userId === userData.id) {
-      setCurrentView('profile');
+    if (userData && (userId === userData.id || userId === userData.id_usuario)) {
+      handleOpenProfile();
     } else {
       setSelectedUserId(userId);
       setCurrentView('publicProfile');
@@ -167,7 +167,7 @@ function App() {
         <PublicProfile
           userId={selectedUserId}
           onBack={handleBackToHome}
-          loggedUserId={userData?.id}
+          loggedUserId={userData?.id_usuario || userData?.id}
         />
       )}
 
