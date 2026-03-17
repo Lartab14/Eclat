@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowLeft, Settings, MapPin, Calendar, Users, Heart, MessageCircle, Camera, Edit2, Upload, Plus, Image, FileText, X, Save, Trash2 } from 'lucide-react';
 import './UserProfile.css';
+import ShareDesignModal from './ShareDesignModal';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
@@ -34,6 +35,10 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
   const [modalComments, setModalComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [isPostingComment, setIsPostingComment] = useState(false);
+
+  // ✅ Estados para modal de compartir diseño (igual que InicialEclat)
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState([]);
 
   const coverInputRef = useRef(null);
   const avatarInputRef = useRef(null);
@@ -198,41 +203,23 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     }
   };
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     if (!userDataProp?.id_usuario) { alert('Error: Usuario no autenticado'); return; }
-    try {
-      const uploadPromises = Array.from(files).map(async (file) => {
-        const formData = new FormData();
-        formData.append('image', file);
-        const uploadRes = await fetch(`${API_URL}/upload/image`, { method: 'POST', body: formData });
-        if (!uploadRes.ok) throw new Error('Error al subir imagen');
-        const uploadData = await uploadRes.json();
-        const visibilidad = activeTab === 'public' ? 'publico' : 'privado';
-        const response = await fetch(`${API_URL}/designs/with-file`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            id_usuario: userDataProp.id_usuario,
-            titulo: file.name.replace(/\.[^/.]+$/, ""),
-            descripcion: '',
-            tipo_diseño: 'imagen',
-            visibilidad,
-            imagen_url: uploadData.imageUrl
-          })
-        });
-        if (!response.ok) throw new Error('Error al guardar el diseño');
-        return (await response.json()).diseño;
-      });
-      await Promise.all(uploadPromises);
-      await cargarDiseños();
-      await cargarStats();
-      alert('Diseños subidos exitosamente ✅');
-    } catch (error) {
-      console.error('❌ Error al subir archivos:', error);
-      alert('Error al subir los archivos: ' + error.message);
-    }
+    // ✅ Guardar archivos pendientes y abrir ShareDesignModal (igual que InicialEclat)
+    setPendingFiles(Array.from(files));
+    setShareModalOpen(true);
+    // Limpiar el input para permitir re-selección del mismo archivo
+    e.target.value = '';
+  };
+
+  // ✅ Callback cuando el post se crea exitosamente desde el modal
+  const handlePostCreated = async () => {
+    console.log('✅ Post creado exitosamente desde UserProfile');
+    setPendingFiles([]);
+    await cargarDiseños();
+    await cargarStats();
   };
 
   const handleDeleteDesign = async (designId) => {
@@ -549,6 +536,15 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
           </div>
         </div>
       </div>
+
+      {/* ✅ Modal para compartir diseño (igual que InicialEclat) */}
+      <ShareDesignModal
+        isOpen={shareModalOpen}
+        onClose={() => { setShareModalOpen(false); setPendingFiles([]); }}
+        userData={userDataProp}
+        initialFiles={pendingFiles}
+        onPostCreated={handlePostCreated}
+      />
 
       {/* ✅ Modal de diseño propio con likes y comentarios */}
       {selectedDesign && (
