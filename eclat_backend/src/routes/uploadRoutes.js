@@ -1,59 +1,48 @@
 const { Router } = require("express");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const router = Router();
 
-// Crear carpeta uploads si no existe
-const uploadDir = path.join(__dirname, "../../uploads/profiles");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Configuración de Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-// Configuración de multer
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
+// Configuración de multer con Cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "eclat/profiles",
+    allowed_formats: ["jpeg", "jpg", "png", "gif", "webp"],
+    transformation: [{ width: 500, height: 500, crop: "limit" }],
   },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, `profile-${uniqueSuffix}${ext}`);
-  }
 });
 
 const upload = multer({
   storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-  fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|gif|webp/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    
-    if (mimetype && extname) {
-      return cb(null, true);
-    }
-    cb(new Error('Solo se permiten imágenes (jpeg, jpg, png, gif, webp)'));
-  }
 });
 
 // Endpoint para subir imagen
-router.post('/image', upload.single('image'), (req, res) => {
+router.post("/image", upload.single("image"), (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No se subió ninguna imagen' });
+      return res.status(400).json({ error: "No se subió ninguna imagen" });
     }
 
-    // URL relativa para acceder a la imagen
-    const imageUrl = `/uploads/profiles/${req.file.filename}`;
-    
-    console.log("✅ Imagen subida:", imageUrl);
-    
-    res.json({ 
+    // Cloudinary devuelve la URL pública directamente
+    const imageUrl = req.file.path;
+
+    console.log("✅ Imagen subida a Cloudinary:", imageUrl);
+
+    res.json({
       success: true,
       imageUrl: imageUrl,
-      filename: req.file.filename
+      filename: req.file.filename,
     });
   } catch (error) {
     console.error("❌ Error al subir imagen:", error);
