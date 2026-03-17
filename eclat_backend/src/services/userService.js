@@ -1,15 +1,11 @@
 const prisma = require("../prisma.js");
 const bcrypt = require("bcryptjs");
-const { Prisma } = require("@prisma/client"); 
+const { Prisma } = require("@prisma/client");
 
 const crearUsuario = async (data) => {
   try {
-    if (!data.rol) {
-      throw new Error("El rol es obligatorio");
-    }
-
+    if (!data.rol) throw new Error("El rol es obligatorio");
     const hashedPassword = await bcrypt.hash(data.contraseña, 10);
-
     return await prisma.usuario.create({
       data: {
         nombre_usuario: data.nombre_usuario,
@@ -18,15 +14,10 @@ const crearUsuario = async (data) => {
         rol: data.rol
       }
     });
-
   } catch (error) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       throw new Error("El correo ya está registrado");
     }
-
     throw error;
   }
 };
@@ -35,14 +26,11 @@ const obtenerUsuarios = async () => {
   return prisma.usuario.findMany();
 };
 
-// Función helper para mapear stats correctamente
-// seguidores = relación "Seguidor" = registros donde este usuario ES el seguidor = following
-// seguidos   = relación "Seguido"  = registros donde este usuario ES el seguido  = followers
 const mapearStats = (count) => ({
   posts: count.diseños,
   likes: count.likes,
-  followers: count.seguidos,    // ✅ quienes lo siguen a él
-  following: count.seguidores,  // ✅ a quienes sigue él
+  followers: count.seguidos,
+  following: count.seguidores,
 });
 
 const obtenerUsuarioPorId = async (id) => {
@@ -59,18 +47,9 @@ const obtenerUsuarioPorId = async (id) => {
       }
     }
   });
-
   if (!usuario) return null;
-
-  const usuarioMapeado = {
-    ...usuario,
-    stats: mapearStats(usuario._count),
-  };
-
+  const usuarioMapeado = { ...usuario, stats: mapearStats(usuario._count) };
   delete usuarioMapeado._count;
-
-  //console.log(JSON.stringify(usuarioMapeado));
-
   return usuarioMapeado;
 };
 
@@ -88,22 +67,11 @@ const autenticarUsuario = async (correo, contraseña) => {
       }
     }
   });
-
   if (!usuario) return null;
-
   const passwordValida = await bcrypt.compare(contraseña, usuario.contraseña);
-
   if (!passwordValida) return null;
-
-  console.log(JSON.stringify(usuario));
-
-  const usuarioMapeado = {
-    ...usuario,
-    stats: mapearStats(usuario._count), // ✅ mismo helper, consistente
-  };
-
+  const usuarioMapeado = { ...usuario, stats: mapearStats(usuario._count) };
   delete usuarioMapeado._count;
-
   return usuarioMapeado;
 };
 
@@ -118,50 +86,59 @@ const actualizarPerfil = async (id, data) => {
       where: { id_usuario: Number(id) }
     });
 
-    if (!usuarioActual) {
-      throw new Error("Usuario no encontrado");
-    }
+    if (!usuarioActual) throw new Error("Usuario no encontrado");
 
+    // ✅ Parsear informacion_adicional actual de forma segura
     let infoActual = {};
-    try {
-      const parsed = JSON.parse(usuarioActual.informacion_adicional);
-      
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        const hasNumericKeys = Object.keys(parsed).some(key => !isNaN(key));
-        
-        if (hasNumericKeys) {
-          console.log("⚠️ JSON corrupto detectado, reconstruyendo...");
-          infoActual = {
-            edad: parsed.edad || '',
-            ubicacion: parsed.ubicacion || '',
-            foto_portada: parsed.foto_portada || ''
-          };
-        } else {
-          infoActual = parsed;
+    if (usuarioActual.informacion_adicional) {
+      try {
+        const parsed = JSON.parse(usuarioActual.informacion_adicional);
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          // Detectar JSON corrupto con claves numéricas
+          const hasNumericKeys = Object.keys(parsed).some(key => !isNaN(key));
+          if (hasNumericKeys) {
+            console.log("⚠️ JSON corrupto detectado, reconstruyendo...");
+            infoActual = {};
+          } else {
+            infoActual = parsed;
+          }
         }
+      } catch (e) {
+        console.log("⚠️ Error parseando JSON, iniciando objeto vacío");
+        infoActual = {};
       }
-    } catch (error) {
-      console.log("⚠️ Error parseando JSON, iniciando objeto vacío");
-      infoActual = {};
     }
 
+    // ✅ Construir informacion_adicional actualizada
     const informacionAdicional = { ...infoActual };
 
-    if (ubicacion !== undefined) informacionAdicional.ubicacion = ubicacion;
-    if (foto_portada !== undefined) informacionAdicional.foto_portada = foto_portada;
-    if (edad !== undefined) {
-      informacionAdicional.edad =
-        typeof edad === "string" ? edad.replace(/\D/g, "") : String(edad);
+    if (ubicacion !== undefined && ubicacion !== null) {
+      informacionAdicional.ubicacion = ubicacion;
+    }
+    if (foto_portada !== undefined && foto_portada !== null) {
+      informacionAdicional.foto_portada = foto_portada;
+    }
+    // ✅ CORREGIDO: guardar edad como string sin eliminar letras
+    if (edad !== undefined && edad !== null) {
+      informacionAdicional.edad = String(edad).trim();
     }
 
+    // ✅ Construir objeto de actualización solo con campos definidos
     const updateData = {
-      ...(nombre_usuario !== undefined && { nombre_usuario }),
-      ...(descripcion !== undefined && { descripcion }),
-      ...(foto_perfil !== undefined && { foto_perfil }),
       informacion_adicional: JSON.stringify(informacionAdicional)
     };
 
-    console.log("Actualizando con:", JSON.stringify(updateData, null, 2));
+    if (nombre_usuario !== undefined && nombre_usuario !== null && nombre_usuario.trim() !== '') {
+      updateData.nombre_usuario = nombre_usuario.trim();
+    }
+    if (descripcion !== undefined && descripcion !== null) {
+      updateData.descripcion = descripcion.trim();
+    }
+    if (foto_perfil !== undefined && foto_perfil !== null && foto_perfil !== '') {
+      updateData.foto_perfil = foto_perfil;
+    }
+
+    console.log("✏️ Actualizando con:", JSON.stringify(updateData, null, 2));
 
     const usuarioActualizado = await prisma.usuario.update({
       where: { id_usuario: Number(id) },
