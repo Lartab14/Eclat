@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import InicialEclat from './InicialEclat';
 import Login from './Login';
@@ -25,16 +25,45 @@ function App() {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [editingDesign, setEditingDesign] = useState(null);
 
+  // ✅ Al cargar la app, recuperar la sesión guardada
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    const savedUser = localStorage.getItem('userData');
+
+    if (token && savedUser) {
+      try {
+        const usuario = JSON.parse(savedUser);
+        setIsAuthenticated(true);
+        setUserData(usuario);
+        setCurrentView('home');
+      } catch (e) {
+        // Si el JSON está corrupto, limpiar
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userData');
+      }
+    }
+  }, []);
+
   // Función para manejar el login exitoso
   const handleLoginSuccess = (usuario, token) => {
     console.log('Login exitoso:', usuario);
-    setIsAuthenticated(true);
-    setUserData({
+
+    const user = {
       id: usuario.id_usuario,
+      id_usuario: usuario.id_usuario,
       name: usuario.name || usuario.nombre_usuario || 'Usuario',
+      nombre_usuario: usuario.nombre_usuario,
       email: usuario.email || usuario.correo || '',
-      ...usuario // Guardamos todo el objeto usuario por si acaso
-    });
+      correo: usuario.correo,
+      ...usuario
+    };
+
+    // ✅ Persistir sesión en localStorage
+    localStorage.setItem('authToken', token);
+    localStorage.setItem('userData', JSON.stringify(user));
+
+    setIsAuthenticated(true);
+    setUserData(user);
     setCurrentView('home');
   };
 
@@ -45,7 +74,15 @@ function App() {
     setSelectedUserId(null);
     localStorage.removeItem('authToken');
     localStorage.removeItem('userId');
+    localStorage.removeItem('userData');
     setCurrentView('login');
+  };
+
+  // ✅ Función para actualizar el perfil y persistirlo
+  const handleUpdateProfile = (updatedProfile) => {
+    const newData = { ...userData, ...updatedProfile };
+    localStorage.setItem('userData', JSON.stringify(newData));
+    setUserData(newData);
   };
 
   // Función para abrir el editor
@@ -56,7 +93,7 @@ function App() {
   // Función para abrir el workspace
   const handleOpenWorkspace = (design = null) => {
     console.log('Abriendo Workspace:', design ? 'Editando diseño' : 'Nuevo diseño');
-    setEditingDesign(design); // Si hay diseño, lo pasamos para editar
+    setEditingDesign(design);
     setCurrentView('workspace');
   };
 
@@ -67,7 +104,7 @@ function App() {
 
   // Función para volver al perfil desde workspace
   const handleBackToProfile = () => {
-    setEditingDesign(null); // Limpiar diseño al volver
+    setEditingDesign(null);
     setCurrentView('profile');
   };
 
@@ -79,33 +116,17 @@ function App() {
   // Función para abrir perfil público de otro usuario
   const handleOpenPublicProfile = (userId) => {
     console.log('🔍 Abriendo perfil público de usuario:', userId);
-    console.log('📊 userData actual:', userData);
-
-    // Verificar si es el mismo usuario
     if (userData && userId === userData.id) {
-      console.log('👤 Es el mismo usuario, abriendo perfil personal');
       setCurrentView('profile');
     } else {
-      console.log('👥 Es otro usuario, abriendo perfil público');
       setSelectedUserId(userId);
       setCurrentView('publicProfile');
     }
   };
 
-  // Función para abrir colecciones
-  const handleOpenCollections = () => {
-    setCurrentView('collections');
-  };
-
-  // Función para abrir diseñadores
-  const handleOpenDesigners = () => {
-    setCurrentView('designers');
-  };
-
-  // Función para abrir tendencias
-  const handleOpenTrends = () => {
-    setCurrentView('trends');
-  };
+  const handleOpenCollections = () => setCurrentView('collections');
+  const handleOpenDesigners = () => setCurrentView('designers');
+  const handleOpenTrends = () => setCurrentView('trends');
 
   return (
     <div className="App">
@@ -136,7 +157,8 @@ function App() {
         <UserProfile
           onBack={handleBackToHome}
           onLogout={handleLogout}
-          onOpenWorkspace={handleOpenWorkspace}  // ← Pasamos función con soporte para edición
+          onOpenWorkspace={handleOpenWorkspace}
+          onUpdateProfile={handleUpdateProfile}
           userData={userData}
         />
       )}
@@ -145,7 +167,7 @@ function App() {
         <PublicProfile
           userId={selectedUserId}
           onBack={handleBackToHome}
-          loggedUserId={userData.id}
+          loggedUserId={userData?.id}
         />
       )}
 
@@ -153,9 +175,10 @@ function App() {
         <Workspace
           onBack={handleBackToProfile}
           userData={userData}
-          draftDesign={editingDesign}  // ← Pasamos el diseño a editar (si existe)
+          draftDesign={editingDesign}
         />
       )}
+
       {currentView === 'collections' && (
         <Colecciones
           onNavigateHome={handleBackToHome}
