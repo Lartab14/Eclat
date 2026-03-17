@@ -16,10 +16,10 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
   const [avatarImage, setAvatarImage] = useState(userDataProp?.avatarImage || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400');
 
   const [editData, setEditData] = useState({
-    name: userDataProp?.name || userDataProp?.nombre_usuario || 'Usuario',
-    bio: userDataProp?.bio || userDataProp?.descripcion || '',
-    location: userDataProp?.location || userDataProp?.ubicacion || '',
-    age: userDataProp?.age || '',
+    name: userDataProp?.name || 'Millie Mendes',
+    bio: userDataProp?.bio || 'Diseñadora de moda emergente apasionada por la sostenibilidad y las texturas innovadoras.',
+    location: userDataProp?.location || 'Barcelona, España',
+    age: userDataProp?.age || '26 años',
   });
 
   const [publicDesigns, setPublicDesigns] = useState([]);
@@ -34,17 +34,19 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     return '@' + name.toLowerCase().replace(/\s+/g, '');
   };
 
+  console.log('User data prop: ', userDataProp)
+
   const userData = {
     name: editData.name,
     username: generateUsername(editData.name),
-    email: userDataProp?.email || userDataProp?.correo || '',
+    email: userDataProp?.email || '',
     bio: editData.bio,
     location: editData.location,
     joinDate: userDataProp?.joinDate || 'Marzo 2024',
     age: editData.age,
-    verified: userDataProp?.verified || false,
-    topCreator: userDataProp?.topCreator || false,
-    stats: userDataProp?.stats || { posts: 0, likes: 0, followers: 0, following: 0 },
+    verified: userDataProp?.verified || true,
+    topCreator: userDataProp?.topCreator || true,
+    stats: userDataProp?.stats,
   };
 
   useEffect(() => {
@@ -81,7 +83,6 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     }
   };
 
-  // ✅ CORREGIDO: Cloudinary devuelve URL completa, no concatenar API_URL
   const uploadImageToServer = async (file) => {
     const formData = new FormData();
     formData.append('image', file);
@@ -97,10 +98,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
       }
 
       const data = await response.json();
-      
-      // Cloudinary devuelve una URL completa (https://res.cloudinary.com/...)
-      // No concatenar API_URL
-      return data.imageUrl;
+      return `${API_URL}${data.imageUrl}`;
     } catch (error) {
       console.error('❌ Error al subir imagen:', error);
       throw error;
@@ -147,10 +145,10 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
   const toggleEditMode = () => {
     if (isEditMode) {
       setEditData({
-        name: userDataProp?.name || userDataProp?.nombre_usuario || 'Usuario',
-        bio: userDataProp?.bio || userDataProp?.descripcion || '',
-        location: userDataProp?.location || userDataProp?.ubicacion || '',
-        age: userDataProp?.age || '',
+        name: userDataProp?.name || 'Millie Mendes',
+        bio: userDataProp?.bio || 'Diseñadora de moda emergente.',
+        location: userDataProp?.location || 'Barcelona, España',
+        age: userDataProp?.age || '26 años',
       });
       setCoverImage(userDataProp?.coverImage || 'https://images.unsplash.com/photo-1558769132-cb1aea3c9239?w=1200');
       setAvatarImage(userDataProp?.avatarImage || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400');
@@ -169,7 +167,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
         age: editData.age,
         coverImage: coverImage,
         avatarImage: avatarImage,
-        email: userDataProp?.email || userDataProp?.correo,
+        email: userDataProp?.email,
         username: generateUsername(editData.name)
       };
 
@@ -271,12 +269,13 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
 
   const currentDesigns = activeTab === 'public' ? publicDesigns : privateDesigns;
 
-  // ✅ CORREGIDO: Si la URL ya es completa (Cloudinary), usarla directamente
+  const currentUserId = userDataProp?.id_usuario;
+
   const resolveImageUrl = (design) => {
     const raw = design.imagen || design.imagen_url || design.image || design.url || '';
     if (!raw) return null;
     if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) {
-      return raw; // URL completa de Cloudinary, usar directamente
+      return raw;
     }
     return `${API_URL}${raw.startsWith('/') ? '' : '/'}${raw}`;
   };
@@ -463,19 +462,19 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
           {/* Estadísticas */}
           <div className="profile-stats-container">
             <div className="profile-stat-item">
-              <div className="profile-stat-number">{userData.stats?.posts || 0}</div>
+              <div className="profile-stat-number">{userData.stats.posts}</div>
               <div className="profile-stat-label">Posts</div>
             </div>
             <div className="profile-stat-item">
-              <div className="profile-stat-number">{userData.stats?.likes?.toLocaleString() || 0}</div>
+              <div className="profile-stat-number">{userData.stats.likes.toLocaleString()}</div>
               <div className="profile-stat-label">Likes</div>
             </div>
             <div className="profile-stat-item">
-              <div className="profile-stat-number">{userData.stats?.followers?.toLocaleString() || 0}</div>
+              <div className="profile-stat-number">{userData.stats.followers.toLocaleString()}</div>
               <div className="profile-stat-label">Seguidores</div>
             </div>
             <div className="profile-stat-item">
-              <div className="profile-stat-number">{userData.stats?.following || 0}</div>
+              <div className="profile-stat-number">{userData.stats.following}</div>
               <div className="profile-stat-label">Siguiendo</div>
             </div>
           </div>
@@ -664,6 +663,6 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
         </div> {/* END profile-content */}
 
       </div> {/* END profile-main-content */}
-    </div>
+    </div> // END profile-container
   );
 }
