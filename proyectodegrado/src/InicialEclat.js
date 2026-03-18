@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Sparkles, Search, Play, Palette, Grid, Users, TrendingUp, Code, Layers, Heart, Star, User, ChevronLeft, RotateCcw,
-  RotateCw, Save, Pen, Eraser, Trash2, Plus, Eye, Lock, Copy, Minus, Circle, Square, Type
+  RotateCw, Save, Pen, Eraser, Trash2, Plus, Eye, Lock, Copy, Minus, Circle, Square, Type, MessageCircle, X
 } from 'lucide-react';
 import './InicialEclat.css';
 import ShareDesignModal from './ShareDesignModal';
@@ -55,6 +55,13 @@ export default function InicialEclat({
   const [featuredDesigns, setFeaturedDesigns] = useState([]);
   const [isLoadingFeatured, setIsLoadingFeatured] = useState(true);
   const [errorFeatured, setErrorFeatured] = useState(null);
+
+  // ── Modal de post destacado ────────────────────────────────
+  const [selectedDesign, setSelectedDesign]       = useState(null);
+  const [modalLikes, setModalLikes]               = useState({ total: 0, liked: false });
+  const [modalComments, setModalComments]         = useState([]);
+  const [newComment, setNewComment]               = useState('');
+  const [isPostingComment, setIsPostingComment]   = useState(false);
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
@@ -213,6 +220,69 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
       visible: true,
       locked: false
     }]);
+  };
+
+  // ── Resolver URL de imagen ─────────────────────────────────
+  const resolveImageUrl = (design) => {
+    const raw = design.imagen || design.imagen_url || design.image || design.url || '';
+    if (!raw) return null;
+    if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) return raw;
+    return `${API_URL}${raw.startsWith('/') ? '' : '/'}${raw}`;
+  };
+
+  // ── Abrir modal: carga likes y comentarios ─────────────────
+  const handleOpenDesignModal = async (design) => {
+    setSelectedDesign(design);
+    setModalComments([]);
+    setModalLikes({ total: design.likes || 0, liked: false });
+    try {
+      const userId = userData?.id_usuario || '';
+      const [likesRes, commentsRes] = await Promise.all([
+        fetch(`${API_URL}/likes/design/${design.id}?id_usuario=${userId}`),
+        fetch(`${API_URL}/comments/design/${design.id}`)
+      ]);
+      const likesData    = await likesRes.json();
+      const commentsData = await commentsRes.json();
+      if (likesData.success)    setModalLikes({ total: likesData.total, liked: likesData.liked });
+      if (commentsData.success) setModalComments(commentsData.comentarios || []);
+    } catch (err) { console.error('Error cargando likes/comentarios:', err); }
+  };
+
+  // ── Toggle like ────────────────────────────────────────────
+  const handleToggleLike = async () => {
+    if (!selectedDesign || !userData?.id_usuario) return;
+    try {
+      const res  = await fetch(`${API_URL}/likes/design/${selectedDesign.id}/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_usuario: userData.id_usuario })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setModalLikes(prev => ({ liked: data.liked, total: data.liked ? prev.total + 1 : prev.total - 1 }));
+        setFeaturedDesigns(prev => prev.map(d =>
+          d.id === selectedDesign.id
+            ? { ...d, likes: data.liked ? (d.likes || 0) + 1 : Math.max((d.likes || 1) - 1, 0) }
+            : d
+        ));
+      }
+    } catch (err) { console.error('Error al dar like:', err); }
+  };
+
+  // ── Enviar comentario ──────────────────────────────────────
+  const handlePostComment = async () => {
+    if (!newComment.trim() || !selectedDesign) return;
+    setIsPostingComment(true);
+    try {
+      const res  = await fetch(`${API_URL}/comments/design/${selectedDesign.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_usuario: userData?.id_usuario, contenido: newComment })
+      });
+      const data = await res.json();
+      if (data.success) { setModalComments(prev => [data.comentario, ...prev]); setNewComment(''); }
+    } catch (err) { console.error('Error al comentar:', err); }
+    finally { setIsPostingComment(false); }
   };
 
   return (
@@ -740,7 +810,12 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
                 </div>
               ) : (
                 featuredDesigns.map((design) => (
-                  <div key={design.id} className="featured-card">
+                  <div
+                    key={design.id}
+                    className="featured-card"
+                    onClick={() => handleOpenDesignModal(design)}
+                    style={{ cursor: 'pointer' }}
+                  >
                     <div className="featured-image">
                       {design.image ? (
                         <img
@@ -755,12 +830,15 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
                       ) : (
                         <div className="image-placeholder">🎨</div>
                       )}
+                      {/* Stats en hover */}
+                      <div className="featured-image-overlay">
+                        <span className="featured-stat-chip"><Heart size={14} fill="white" />{design.likes || 0}</span>
+                        <span className="featured-stat-chip"><MessageCircle size={14} />{design.comments || 0}</span>
+                      </div>
                     </div>
                     <div className="featured-info">
                       <h4>{design.title}</h4>
-                      {/* ✅ Usar "author" que es el campo que devuelve la API */}
                       <p>por {design.author}</p>
-                      <button className="featured-follow-btn">Seguir</button>
                     </div>
                   </div>
                 ))
@@ -843,6 +921,100 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
           to { transform: rotate(360deg); }
         }
       `}</style>
+
+      {/* ── Modal de diseño destacado ──────────────────────── */}
+      {selectedDesign && (
+        <div
+          className="col-modal-backdrop"
+          onClick={() => { setSelectedDesign(null); setNewComment(''); }}
+        >
+          <div className="col-modal" onClick={e => e.stopPropagation()}>
+
+            {/* Imagen */}
+            <div className="col-modal-image-wrap">
+              <img
+                src={resolveImageUrl(selectedDesign) || selectedDesign.image}
+                alt={selectedDesign.titulo || selectedDesign.title}
+                className="col-modal-image"
+              />
+              <button
+                className="col-modal-close"
+                onClick={() => { setSelectedDesign(null); setNewComment(''); }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Info + interacciones */}
+            <div className="col-modal-body">
+              <div className="col-modal-header">
+                <h3 className="col-modal-title">
+                  {selectedDesign.titulo || selectedDesign.title}
+                </h3>
+                {selectedDesign.author && (
+                  <p className="col-modal-author">por {selectedDesign.author}</p>
+                )}
+                {selectedDesign.descripcion && selectedDesign.descripcion !== 'Compartido desde Éclat' && (
+                  <p className="col-modal-desc">{selectedDesign.descripcion}</p>
+                )}
+              </div>
+
+              <div className="col-modal-actions">
+                <button
+                  className={`col-modal-like-btn ${modalLikes.liked ? 'liked' : ''}`}
+                  onClick={handleToggleLike}
+                >
+                  <Heart size={20} fill={modalLikes.liked ? '#ef4444' : 'none'} />
+                  <span>{modalLikes.total}</span>
+                </button>
+                <span className="col-modal-comments-count">
+                  <MessageCircle size={20} />
+                  <span>{modalComments.length}</span>
+                </span>
+              </div>
+
+              <div className="col-modal-comments">
+                <div className="col-modal-comment-input-row">
+                  <input
+                    type="text"
+                    className="col-modal-comment-input"
+                    placeholder="Escribe un comentario..."
+                    value={newComment}
+                    onChange={e => setNewComment(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handlePostComment()}
+                  />
+                  <button
+                    className="col-modal-comment-send"
+                    onClick={handlePostComment}
+                    disabled={isPostingComment || !newComment.trim()}
+                  >
+                    Enviar
+                  </button>
+                </div>
+
+                {modalComments.length === 0 ? (
+                  <p className="col-modal-no-comments">Sin comentarios aún. ¡Sé el primero!</p>
+                ) : (
+                  modalComments.map(c => (
+                    <div key={c.id_comentario} className="col-modal-comment-item">
+                      <img
+                        src={c.usuario?.foto_perfil || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'}
+                        alt={c.usuario?.nombre_usuario}
+                        className="col-modal-comment-avatar"
+                        onError={e => { e.target.src = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'; }}
+                      />
+                      <div>
+                        <p className="col-modal-comment-user">{c.usuario?.nombre_usuario}</p>
+                        <p className="col-modal-comment-text">{c.contenido}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

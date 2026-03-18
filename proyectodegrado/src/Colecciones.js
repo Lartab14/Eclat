@@ -168,7 +168,7 @@ export default function Colecciones({
           <div className="header-actions">
             {/* ← CAMBIO: SearchBar reemplaza al botón Search */}
             <SearchBar onOpenPublicProfile={onOpenPublicProfile} />
-            <button className="upload-button" onClick={onOpenEditor}>
+            <button className="upload-button" onClick={onOpenWorkspace}>
               Crear diseño
             </button>
 

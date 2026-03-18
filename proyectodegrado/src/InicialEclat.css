@@ -1476,6 +1476,37 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.4s ease;
+}
+
+.featured-card:hover .featured-design-image {
+  transform: scale(1.04);
+}
+
+/* Overlay de stats en hover */
+.featured-image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%);
+  opacity: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.85rem;
+  padding: 1rem 1.1rem;
+  transition: opacity 0.28s ease;
+}
+
+.featured-card:hover .featured-image-overlay {
+  opacity: 1;
+}
+
+.featured-stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .image-placeholder {
@@ -2261,4 +2292,144 @@
     padding: 2.5rem 0 1.75rem;
     gap: 1.5rem;
   }
+}
+/* ============================================================ */
+/*  MODAL DE DISEÑO DESTACADO — InicialEclat                   */
+/*  (Mismas clases que Colecciones para consistencia)          */
+/* ============================================================ */
+
+.col-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: colBackdropIn 0.22s ease;
+}
+@keyframes colBackdropIn { from { opacity: 0; } to { opacity: 1; } }
+
+.col-modal {
+  background: white;
+  border-radius: 1.25rem;
+  width: 100%;
+  max-width: 780px;
+  max-height: 92vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.4);
+  animation: colModalIn 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes colModalIn {
+  from { opacity: 0; transform: scale(0.93) translateY(20px); }
+  to   { opacity: 1; transform: scale(1)   translateY(0); }
+}
+
+.col-modal-image-wrap {
+  position: relative;
+  background: #0f0f0f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 420px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.col-modal-image {
+  width: 100%;
+  height: auto;
+  max-height: 420px;
+  object-fit: contain;
+  display: block;
+}
+.col-modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 34px;
+  height: 34px;
+  background: rgba(0,0,0,0.55);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s, transform 0.2s;
+}
+.col-modal-close:hover { background: rgba(0,0,0,0.8); transform: rotate(90deg); }
+
+.col-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.col-modal-header {
+  padding: 1.1rem 1.5rem 0.85rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+.col-modal-title  { font-size: 1.05rem; font-weight: 700; color: #1f2937; margin: 0 0 0.2rem; }
+.col-modal-author { font-size: 0.82rem; color: #9333ea; font-weight: 500; margin: 0 0 0.5rem; }
+.col-modal-desc   { font-size: 0.875rem; color: #6b7280; line-height: 1.5; margin: 0.4rem 0 0; }
+
+.col-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.85rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+.col-modal-like-btn {
+  display: flex; align-items: center; gap: 0.45rem;
+  background: none; border: none; cursor: pointer;
+  color: #6b7280; font-size: 1rem; font-weight: 600;
+  transition: color 0.2s, transform 0.15s; padding: 0;
+}
+.col-modal-like-btn:hover { color: #ef4444; transform: scale(1.08); }
+.col-modal-like-btn.liked { color: #ef4444; }
+.col-modal-comments-count {
+  display: flex; align-items: center; gap: 0.45rem;
+  color: #6b7280; font-size: 1rem; font-weight: 600;
+}
+
+.col-modal-comments { flex: 1; padding: 1rem 1.5rem 1.25rem; overflow-y: auto; }
+
+.col-modal-comment-input-row { display: flex; gap: 0.65rem; margin-bottom: 1.25rem; }
+.col-modal-comment-input {
+  flex: 1; padding: 0.6rem 1rem;
+  border: 1.5px solid #e5e7eb; border-radius: 9999px;
+  outline: none; font-size: 0.875rem; font-family: inherit;
+  transition: border-color 0.2s;
+}
+.col-modal-comment-input:focus { border-color: #9333ea; }
+.col-modal-comment-send {
+  padding: 0.6rem 1.2rem;
+  background: linear-gradient(135deg, #AC83F5, #7e22ce);
+  color: white; border: none; border-radius: 9999px;
+  cursor: pointer; font-size: 0.875rem; font-weight: 600;
+  font-family: inherit; white-space: nowrap;
+  transition: opacity 0.2s, transform 0.15s;
+}
+.col-modal-comment-send:disabled { opacity: 0.45; cursor: not-allowed; }
+.col-modal-comment-send:not(:disabled):hover { transform: translateY(-1px); }
+
+.col-modal-no-comments { text-align: center; color: #9ca3af; font-size: 0.875rem; padding: 1rem 0; }
+.col-modal-comment-item { display: flex; gap: 0.75rem; margin-bottom: 1rem; align-items: flex-start; }
+.col-modal-comment-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.col-modal-comment-user { margin: 0 0 0.15rem; font-weight: 600; font-size: 0.82rem; color: #1f2937; }
+.col-modal-comment-text { margin: 0; font-size: 0.875rem; color: #374151; line-height: 1.45; }
+
+@media (max-width: 600px) {
+  .col-modal { max-height: 96vh; border-radius: 1rem 1rem 0 0; }
+  .col-modal-backdrop { align-items: flex-end; padding: 0; }
+  .col-modal-image-wrap, .col-modal-image { max-height: 260px; }
+  .col-modal-header, .col-modal-actions, .col-modal-comments { padding-left: 1rem; padding-right: 1rem; }
 }
