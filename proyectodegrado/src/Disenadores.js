@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, User, Users, Heart, Eye, MapPin, Sparkles , X } from 'lucide-react';
+import { User, Users, Heart, MapPin } from 'lucide-react';
+import SearchBar from './Searchbar';
 import './Disenadores.css';
 
-// Importar imágenes
 import LogoEclat from './img/LogoEclat.png';
 import Eclat from './img/Eclat.png';
-import HeroVideo from './img/Tendencias.mp4';
+import HeroVideo from './img/Disenadores.mp4';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
@@ -13,94 +13,115 @@ export default function Disenadores({
   onNavigateHome,
   onOpenEditor,
   onOpenProfile,
+  onOpenPublicProfile,
   onOpenCollections,
   onOpenTrends
 }) {
-  const [email, setEmail] = useState('');
-  const [mobileOpen, setMobileOpen] = React.useState(false);
   const [designers, setDesigners] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [following, setFollowing] = useState({});
 
-  // Cargar diseñadores aleatorios al montar el componente
   useEffect(() => {
     cargarDisenadoresAleatorios();
   }, []);
+
+  const resolveUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+  };
+
+  const formatNum = (n) => {
+    const num = Number(n);
+    if (isNaN(num)) return '0';
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+  };
 
   const cargarDisenadoresAleatorios = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`${API_URL}/api/usuarios/aleatorios?limit=12`);
-
-      if (!response.ok) {
-        throw new Error('Error al cargar los diseñadores');
-      }
+      const response = await fetch(`${API_URL}/usuarios/aleatorios?limit=12`);
+      if (!response.ok) throw new Error('Error al cargar los diseñadores');
 
       const data = await response.json();
+      console.log('🔍 Primer usuario recibido:', data.usuarios?.[0]);
 
       if (data.success && data.usuarios) {
-        // Formatear las rutas de las imágenes
-        const disenadoresFormateados = data.usuarios.map(designer => ({
-          ...designer,
-          coverImage: designer.coverImage ? `${API_URL}${designer.coverImage}` : null,
-          avatarImage: designer.avatarImage ? `${API_URL}${designer.avatarImage}` : null,
-          // Formatear números
-          followers: typeof designer.followers === 'number'
-            ? (designer.followers >= 1000000
-              ? (designer.followers / 1000000).toFixed(1) + 'M'
-              : designer.followers >= 1000
-                ? (designer.followers / 1000).toFixed(1) + 'K'
-                : designer.followers.toString())
-            : designer.followers,
-          likes: typeof designer.likes === 'number'
-            ? (designer.likes >= 1000000
-              ? (designer.likes / 1000000).toFixed(1) + 'M'
-              : designer.likes >= 1000
-                ? (designer.likes / 1000).toFixed(1) + 'K'
-                : designer.likes.toString())
-            : designer.likes
-        }));
+        const formateados = data.usuarios.map(d => {
+          const rawAvatar = d.avatarImage || d.foto_perfil || d.avatar || '';
+          const rawCover  = d.coverImage  || d.foto_portada || d.portada || '';
+          const name      = d.name || d.nombre_usuario || d.nombre || 'Diseñador';
+          const username  = d.username || d.usuario || name;
+          const specialty = d.specialty || d.especialidad || d.rol || 'Diseñador de moda';
+          const location  = d.location || d.ubicacion || d.ciudad || 'Colombia';
 
-        setDesigners(disenadoresFormateados);
+          return {
+            ...d,
+            id: d.id || d.id_usuario,
+            name,
+            username: username.startsWith('@') ? username : `@${username}`,
+            specialty,
+            location,
+            avatarImage: resolveUrl(rawAvatar),
+            coverImage:  resolveUrl(rawCover),
+            followers: formatNum(d.followers ?? d.seguidores ?? d.num_seguidores ?? 0),
+            projects:  formatNum(d.projects  ?? d.total_posts ?? d.num_posts ?? d.publicaciones ?? 0),
+            likes:     formatNum(d.likes     ?? d.total_likes ?? d.num_likes ?? 0),
+          };
+        });
+        setDesigners(formateados);
       } else {
         setDesigners([]);
       }
-
-    } catch (error) {
-      console.error('❌ Error al cargar diseñadores:', error);
-      setError(error.message);
+    } catch (err) {
+      console.error('❌ Error al cargar diseñadores:', err);
+      setError(err.message);
       setDesigners([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleNewsletterSubmit = (e) => {
-    e.preventDefault();
-    console.log('Email suscrito:', email);
-    setEmail('');
-  };
+  const handleFollowDesigner = async (designerId) => {
+    const token = localStorage.getItem('authToken');
+    if (!token) return alert('Debes iniciar sesión para seguir a un diseñador');
 
-  const handleFollowDesigner = (designerId) => {
-    console.log('Siguiendo a diseñador:', designerId);
-    // Aquí puedes implementar la lógica de seguir
+    const yaSigniendo = following[designerId];
+    setFollowing(prev => ({ ...prev, [designerId]: !yaSigniendo }));
+
+    try {
+      await fetch(`${API_URL}/follows/${yaSigniendo ? 'unfollow' : 'follow'}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ seguido_id: designerId })
+      });
+    } catch (err) {
+      // Revertir si falla
+      setFollowing(prev => ({ ...prev, [designerId]: yaSigniendo }));
+      console.error('Error al seguir:', err);
+    }
   };
 
   const handleViewProfile = (designerId) => {
-    console.log('Ver perfil del diseñador:', designerId);
-    // Aquí puedes implementar la navegación al perfil
+    if (onOpenPublicProfile) {
+      onOpenPublicProfile(designerId);
+    }
   };
 
-
-  const closeMobileNav = () => setMobileOpen(false);
   return (
     <div className="designers-page">
       {/* Header */}
       <header className="designers-header">
         <div className="header-content">
-          <div className="logo-section" onClick={onNavigateHome}>
+          <div className="logo-section" onClick={onNavigateHome} style={{ cursor: 'pointer' }}>
             <div className="logo-circle">
               <img src={LogoEclat} alt="Logo Éclat" className="logo-image" />
             </div>
@@ -115,61 +136,20 @@ export default function Disenadores({
           </nav>
 
           <div className="header-actions">
-            <button className="icon-button">
-              <Search />
-            </button>
-            <button className="upload-button" onClick={onOpenEditor}>
-              Subir diseño
-            </button>
-            <button className="icon-button">
-              <Bell />
-            </button>
-            <button className="icon-button" onClick={onOpenProfile}>
-              <User />
-            </button>
+            <SearchBar onOpenPublicProfile={onOpenPublicProfile} />
+            <button className="upload-button" onClick={onOpenEditor}>Crear diseño</button>
 
-                {/* Hamburguesa móvil */}
-                <button
-                  className={`hamburger ${mobileOpen ? 'open' : ''}`}
-                  onClick={() => setMobileOpen(o => !o)}
-                  aria-label="Menú"
-                >
-                  <span /><span /><span />
-                </button>
+            <button className="icon-button" onClick={onOpenProfile}><User /></button>
           </div>
         </div>
       </header>
 
-      {/* ── Drawer navegación móvil ─────────────────────── */}
-      <div className={`mobile-nav-drawer ${mobileOpen ? 'open' : ''}`}>
-        <div className="mobile-nav-backdrop" onClick={closeMobileNav} />
-        <div className="mobile-nav-panel">
-          <button className="mobile-nav-close" onClick={closeMobileNav}>✕</button>
-          <button className="mobile-nav-link" onClick={() => { closeMobileNav(); onNavigateHome(); }}>Explorar</button>
-          <button className="mobile-nav-link" onClick={() => { closeMobileNav(); onOpenCollections(); }}>Colecciones</button>
-          <button className="mobile-nav-link active">Diseñadores</button>
-          <button className="mobile-nav-link" onClick={() => { closeMobileNav(); onOpenTrends(); }}>Tendencias</button>
-          <div className="mobile-nav-divider" />
-        </div>
-      </div>
-
-      {/* Hero Section con VIDEO - ESTRUCTURA TENDENCIAS */}
+      {/* Hero con video */}
       <section className="designers-hero-section">
-        {/* VIDEO BACKGROUND */}
-        <video
-          className="hero-video-background"
-          autoPlay
-          loop
-          muted
-          playsInline
-        >
+        <video className="hero-video-background" autoPlay loop muted playsInline>
           <source src={HeroVideo} type="video/mp4" />
-          Tu navegador no soporta video HTML5.
         </video>
-
         <div className="hero-overlay"></div>
-
-        {/* Texto inferior izquierda */}
         <div className="hero-text-overlay">
           <span className="hero-text-eyebrow">Comunidad Éclat</span>
           <h2 className="hero-text-title">
@@ -179,13 +159,10 @@ export default function Disenadores({
             Descubre diseñadores emergentes que están redefiniendo la moda. Síguelos, inspírate y sé parte de su historia.
           </p>
         </div>
-
-        <div className="hero-content">
-        </div>
       </section>
 
-      {/* Featured Designers Section */}
-      < section className="featured-designers-section" >
+      {/* Grid de Diseñadores */}
+      <section className="featured-designers-section">
         <div className="featured-container">
           <div className="featured-header">
             <h2 className="featured-title">
@@ -197,72 +174,50 @@ export default function Disenadores({
             </p>
           </div>
 
-          {/* Estado de carga */}
+          {/* Carga */}
           {isLoading && (
-            <div style={{
-              textAlign: 'center',
-              padding: '4rem',
-              color: '#6b7280'
-            }}>
+            <div style={{ textAlign: 'center', padding: '4rem', color: '#6b7280' }}>
               <div style={{
-                margin: '0 auto 1rem',
-                width: '50px',
-                height: '50px',
-                border: '4px solid #f3f4f6',
-                borderTopColor: '#9333ea',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite'
-              }}></div>
+                margin: '0 auto 1rem', width: '50px', height: '50px',
+                border: '4px solid #f3f4f6', borderTopColor: '#9333ea',
+                borderRadius: '50%', animation: 'spin 1s linear infinite'
+              }} />
               <p>Cargando diseñadores...</p>
             </div>
           )}
 
-          {/* Estado de error */}
+          {/* Error */}
           {error && !isLoading && (
-            <div style={{
-              textAlign: 'center',
-              padding: '4rem',
-              color: '#ef4444'
-            }}>
+            <div style={{ textAlign: 'center', padding: '4rem', color: '#ef4444' }}>
               <p>❌ Error: {error}</p>
-              <button
-                onClick={cargarDisenadoresAleatorios}
-                style={{
-                  marginTop: '1rem',
-                  padding: '0.75rem 1.5rem',
-                  background: '#9333ea',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '0.5rem',
-                  cursor: 'pointer'
-                }}
-              >
-                Reintentar
-              </button>
+              <button onClick={cargarDisenadoresAleatorios} style={{
+                marginTop: '1rem', padding: '0.75rem 1.5rem',
+                background: '#9333ea', color: 'white', border: 'none',
+                borderRadius: '0.5rem', cursor: 'pointer'
+              }}>Reintentar</button>
             </div>
           )}
 
           {/* Sin resultados */}
           {!isLoading && !error && designers.length === 0 && (
-            <div style={{
-              textAlign: 'center',
-              padding: '4rem',
-              color: '#6b7280'
-            }}>
+            <div style={{ textAlign: 'center', padding: '4rem', color: '#6b7280' }}>
+              <Users size={48} style={{ marginBottom: '1rem', opacity: 0.4 }} />
               <p>No hay diseñadores disponibles en este momento.</p>
             </div>
           )}
 
-          {/* Grid de Diseñadores */}
+          {/* Grid */}
           {!isLoading && !error && designers.length > 0 && (
             <div className="designers-grid">
               {designers.map((designer) => (
                 <div key={designer.id} className="designer-card">
-                  {/* Imagen de Portada */}
-                  <div className="designer-cover">
-                    {designer.badge && (
-                      <span className="designer-badge">{designer.badge}</span>
-                    )}
+
+                  {/* Portada */}
+                  <div
+                    className="designer-cover"
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleViewProfile(designer.id)}
+                  >
                     {designer.coverImage ? (
                       <img
                         src={designer.coverImage}
@@ -270,14 +225,17 @@ export default function Disenadores({
                         className="designer-cover-image"
                         onError={(e) => {
                           e.target.style.display = 'none';
-                          const placeholder = document.createElement('div');
-                          placeholder.className = 'designer-cover-placeholder';
-                          placeholder.textContent = '🎨';
-                          e.target.parentElement.appendChild(placeholder);
+                          e.target.parentElement.innerHTML += '<div class="designer-cover-placeholder">🎨</div>';
                         }}
                       />
                     ) : (
-                      <div className="designer-cover-placeholder">🎨</div>
+                      <div className="designer-cover-placeholder" style={{
+                        background: `hsl(${(designer.name.charCodeAt(0) * 17) % 360}, 60%, 75%)`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        height: '100%', fontSize: '2rem'
+                      }}>
+                        {designer.name[0].toUpperCase()}
+                      </div>
                     )}
                   </div>
 
@@ -289,19 +247,21 @@ export default function Disenadores({
                         alt={designer.name}
                         className="designer-avatar"
                         onError={(e) => {
-                          e.target.style.display = 'none';
-                          const placeholder = document.createElement('div');
-                          placeholder.className = 'designer-avatar designer-avatar-placeholder';
-                          placeholder.textContent = '👤';
-                          e.target.parentElement.appendChild(placeholder);
+                          e.target.outerHTML = `<div class="designer-avatar designer-avatar-placeholder">${designer.name[0].toUpperCase()}</div>`;
                         }}
                       />
                     ) : (
-                      <div className="designer-avatar designer-avatar-placeholder">👤</div>
+                      <div className="designer-avatar designer-avatar-placeholder" style={{
+                        background: `hsl(${(designer.name.charCodeAt(0) * 17) % 360}, 60%, 65%)`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: 'white', fontWeight: 'bold', fontSize: '1.2rem'
+                      }}>
+                        {designer.name[0].toUpperCase()}
+                      </div>
                     )}
                   </div>
 
-                  {/* Información */}
+                  {/* Info */}
                   <div className="designer-info">
                     <h3 className="designer-name">{designer.name}</h3>
                     <p className="designer-username">{designer.username}</p>
@@ -311,7 +271,7 @@ export default function Disenadores({
                       {designer.location}
                     </div>
 
-                    {/* Estadísticas */}
+                    {/* Stats */}
                     <div className="designer-stats">
                       <div className="designer-stat">
                         <div className="designer-stat-value">{designer.followers}</div>
@@ -327,13 +287,17 @@ export default function Disenadores({
                       </div>
                     </div>
 
-                    {/* Botones de Acción */}
+                    {/* Botones */}
                     <div className="designer-actions">
                       <button
-                        className="btn-follow"
+                        className={`btn-follow ${following[designer.id] ? 'following' : ''}`}
                         onClick={() => handleFollowDesigner(designer.id)}
+                        style={{
+                          background: following[designer.id] ? '#e5e7eb' : undefined,
+                          color: following[designer.id] ? '#374151' : undefined,
+                        }}
                       >
-                        Seguir
+                        {following[designer.id] ? 'Siguiendo' : 'Seguir'}
                       </button>
                       <button
                         className="btn-profile"
@@ -348,17 +312,15 @@ export default function Disenadores({
             </div>
           )}
         </div>
-      </section >
+      </section>
 
-      {/* Sección CTA */}
+      {/* CTA */}
       <section className="inspiration-section">
         <div className="section-container">
           <div className="inspiration-content">
-
             <div className="inspiration-mascot">
               <img src={Eclat} alt="Mascota Éclat" />
             </div>
-
             <div className="inspiration-text">
               <span className="inspiration-eyebrow">Tu espacio creativo</span>
               <h2 className="section-title">
@@ -379,7 +341,6 @@ export default function Disenadores({
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       </section>
@@ -387,12 +348,8 @@ export default function Disenadores({
       {/* Footer */}
       <footer className="footer">
         <div className="footer-divider-top" />
-
         <div className="footer-container">
-
-          {/* Cuerpo centrado: logo + nav */}
           <div className="footer-main">
-
             <div className="footer-brand">
               <div className="footer-logo">
                 <img src={LogoEclat} alt="Logo Éclat" />
@@ -400,20 +357,15 @@ export default function Disenadores({
               </div>
               <p className="footer-description">La plataforma para diseñadores de moda emergentes.</p>
             </div>
-
             <nav className="footer-nav">
               <button className="footer-nav-link" onClick={onNavigateHome}>Explorar</button>
               <button className="footer-nav-link" onClick={onOpenCollections}>Colecciones</button>
               <button className="footer-nav-link" onClick={onOpenTrends}>Tendencias</button>
             </nav>
-
             <div className="footer-divider" />
-
           </div>
-
-          {/* Bottom */}
           <div className="footer-bottom">
-            <p className="footer-copy">© 2025 Éclat. Todos los derechos reservados.</p>
+            <p className="footer-copy">© 2026 Éclat. Todos los derechos reservados.</p>
             <div className="footer-links">
               <a href="#">Términos</a>
               <span className="footer-dot">·</span>
@@ -422,9 +374,10 @@ export default function Disenadores({
               <a href="#">Cookies</a>
             </div>
           </div>
-
         </div>
       </footer>
+
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

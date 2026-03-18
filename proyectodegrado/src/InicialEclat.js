@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Sparkles, Bell, Search, Play, Palette, Grid, Users, TrendingUp, Code, Layers, Heart, Star, User, ChevronLeft, RotateCcw,
+  Sparkles, Search, Play, Palette, Grid, Users, TrendingUp, Code, Layers, Heart, Star, User, ChevronLeft, RotateCcw,
   RotateCw, Save, Pen, Eraser, Trash2, Plus, Eye, Lock, Copy, Minus, Circle, Square, Type
-, X } from 'lucide-react';
-
+} from 'lucide-react';
 import './InicialEclat.css';
-
+import ShareDesignModal from './ShareDesignModal';
 // Importar imágenes
 import Eclat from './img/Eclat.png';
 import LogoEclat from './img/LogoEclat.png';
@@ -15,13 +14,7 @@ import diseño3 from './img/Boceto3.png';
 import comparte1 from './img/vestido.jpg';
 import comparte2 from './img/stwear.jpg';
 
-// Importar imágenes de diseños destacados (6 imágenes)
-import FeaturedDesign1 from './img/Diseñodestacado1.png';
-import FeaturedDesign2 from './img/Diseñodestacado2.png';
-import FeaturedDesign3 from './img/Diseñodestacado3.png';
-import FeaturedDesign4 from './img/Diseñodestacado4.png';
-import FeaturedDesign5 from './img/Diseñodestacado5.png';
-import FeaturedDesign6 from './img/Diseñodestacado6.png';
+// ❌ ELIMINADAS: importaciones de imágenes estáticas de diseños destacados
 
 export default function InicialEclat({
   onLogout,
@@ -29,16 +22,15 @@ export default function InicialEclat({
   onNavigateHome,
   onOpenEditor,
   onOpenProfile,
-  onOpenPublicProfile,  // Para abrir perfiles de otros usuarios
+  onOpenPublicProfile,
   onOpenCollections,
   onOpenDesigners,
   onOpenTrends,
-  onOpenWorkspace,     // Para crear diseños
-  onOpenUpload,        // (deprecated - ahora se usa onOpenWorkspace)
-  userData             // Datos del usuario logueado
+  onOpenWorkspace,
+  onOpenUpload,
+  userData
 }) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [mobileOpen, setMobileOpen] = React.useState(false);
   const [activeTool, setActiveTool] = useState('brush');
   const [brushSize, setBrushSize] = useState(3);
   const [selectedColor, setSelectedColor] = useState('#000000');
@@ -57,8 +49,14 @@ export default function InicialEclat({
   const [searchError, setSearchError] = useState('');
   const searchRef = React.useRef(null);
   const searchInputRef = React.useRef(null);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+  // ✅ NUEVO: Estados para diseños destacados dinámicos
+  const [featuredDesigns, setFeaturedDesigns] = useState([]);
+  const [isLoadingFeatured, setIsLoadingFeatured] = useState(true);
+  const [errorFeatured, setErrorFeatured] = useState(null);
+
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
   const designs = [
     { id: 1, image: diseño1, className: 'design-card-blue' },
@@ -66,21 +64,11 @@ export default function InicialEclat({
     { id: 3, image: diseño3, className: 'design-card-dark' }
   ];
 
-  const featuredDesigns = [
-    { id: 1, title: 'Colección CHANEL', designer: 'Casa de moda', likes: 234, views: 1200, image: FeaturedDesign1 },
-    { id: 2, title: 'Colección Denim & Rock', designer: 'Estudio creativo', likes: 189, views: 980, image: FeaturedDesign2 },
-    { id: 3, title: 'Colección Primavera', designer: 'Diseñador indie', likes: 156, views: 85, image: FeaturedDesign3 },
-    { id: 4, title: 'Vestidos elegantes', designer: 'Atelier boutique', likes: 203, views: 1100, image: FeaturedDesign4 },
-    { id: 5, title: 'Diseños street-wear 2025', designer: 'Colectivo urbano', likes: 178, views: 920, image: FeaturedDesign5 },
-    { id: 6, title: 'Propuestas de diseño en 3D', designer: 'Estudio digital', likes: 167, views: 890, image: FeaturedDesign6 }
-  ];
-
   const colors = [
     '#000000', '#FFFFFF', '#8B83F5', '#A855F7',
     '#BBF7D0', '#FCA5A5', '#2DD4BF', '#FDE047',
     '#BAE6FD', '#FEF3C7', '#FCA5A5', '#5B9BD5'
   ];
-
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % designs.length);
@@ -94,6 +82,35 @@ export default function InicialEclat({
   React.useEffect(() => {
     const timer = setInterval(nextSlide, 3500);
     return () => clearInterval(timer);
+  }, []);
+
+  // ✅ NUEVO: Cargar diseños destacados desde la API al montar
+  useEffect(() => {
+    const cargarDestacados = async () => {
+      setIsLoadingFeatured(true);
+      setErrorFeatured(null);
+      try {
+        const response = await fetch(`${API_URL}/designs/random?limit=6`);
+        if (!response.ok) throw new Error('Error al cargar diseños destacados');
+        const data = await response.json();
+        console.log('Diseños destacados data:', data);
+        if (data.success && data.designs) {
+          setFeaturedDesigns(data.designs.map(post => ({
+            ...post,
+            image: post.image ?? null
+          })));
+        } else {
+          setFeaturedDesigns([]);
+        }
+      } catch (err) {
+        console.error('❌ Error al cargar destacados:', err);
+        setErrorFeatured(err.message);
+        setFeaturedDesigns([]);
+      } finally {
+        setIsLoadingFeatured(false);
+      }
+    };
+    cargarDestacados();
   }, []);
 
   // Cerrar búsqueda al hacer clic fuera
@@ -126,19 +143,14 @@ export default function InicialEclat({
       setIsSearching(true);
       setSearchError('');
       try {
-        // La URL debe coincidir con cómo está montado el router en Express
-        // App.js usa: API_URL/api/usuarios/... → http://localhost:3001/api/usuarios/buscar
-        const url = `${API_URL}/api/usuarios/buscar?q=${encodeURIComponent(searchQuery.trim())}`;
+        const url = `${API_URL}/usuarios/buscar?q=${encodeURIComponent(searchQuery.trim())}`;
         console.log('🔍 Buscando en:', url);
-
         const res = await fetch(url);
-
         if (!res.ok) {
           const errorText = await res.text();
           console.error('❌ Error respuesta:', res.status, errorText);
           throw new Error(`Error ${res.status}`);
         }
-
         const data = await res.json();
         console.log('✅ Resultados:', data);
         setSearchResults(data.usuarios || []);
@@ -203,8 +215,6 @@ export default function InicialEclat({
     }]);
   };
 
-
-  const closeMobileNav = () => setMobileOpen(false);
   return (
     <div className="eclat-container">
       {/* Header */}
@@ -305,38 +315,13 @@ export default function InicialEclat({
             <button className="upload-button" onClick={onOpenWorkspace}>
               Crear diseño
             </button>
-            <button className="icon-button">
-              <Bell />
-              <span className="notification-dot"></span>
-            </button>
+
             <button className="icon-button" onClick={onOpenProfile}>
               <User />
             </button>
-
-                {/* Hamburguesa móvil */}
-                <button
-                  className={`hamburger ${mobileOpen ? 'open' : ''}`}
-                  onClick={() => setMobileOpen(o => !o)}
-                  aria-label="Menú"
-                >
-                  <span /><span /><span />
-                </button>
           </div>
         </div>
       </header>
-
-      {/* ── Drawer navegación móvil ─────────────────────── */}
-      <div className={`mobile-nav-drawer ${mobileOpen ? 'open' : ''}`}>
-        <div className="mobile-nav-backdrop" onClick={closeMobileNav} />
-        <div className="mobile-nav-panel">
-          <button className="mobile-nav-close" onClick={closeMobileNav}>✕</button>
-          <button className="mobile-nav-link active" onClick={closeMobileNav}>Explorar</button>
-          <button className="mobile-nav-link" onClick={() => { closeMobileNav(); onOpenCollections(); }}>Colecciones</button>
-          <button className="mobile-nav-link" onClick={() => { closeMobileNav(); onOpenDesigners(); }}>Diseñadores</button>
-          <button className="mobile-nav-link" onClick={() => { closeMobileNav(); onOpenTrends(); }}>Tendencias</button>
-          <div className="mobile-nav-divider" />
-        </div>
-      </div>
 
       {/* Main Content */}
       <main className="main-content">
@@ -392,7 +377,6 @@ export default function InicialEclat({
               {designs.map((design, index) => {
                 const total = designs.length;
                 const offset = ((index - currentSlide) + total) % total;
-                // offset 0 = active, 1 = right, total-1 = left
                 let posClass = '';
                 if (offset === 0) posClass = 'carousel-slide--active';
                 else if (offset === 1) posClass = 'carousel-slide--right';
@@ -591,171 +575,132 @@ export default function InicialEclat({
         </div>
       </section>
 
-      {/* Sección Comparte con la Comunidad */}
-      <section className="share-section">
+      {/* Sección Comparte con la Comunidad - MODERNIZADA */}
+      <section className="share-section-modern">
         <div className="section-container">
-          <div className="section-header">
-            <h2 className="section-title">Comparte tus <span className="highlight">diseños</span></h2>
-            <p className="section-subtitle">Sube bocetos en 2D o modelos 3D. Elige entre modalidad pública para mostrar al mundo o privada para tu portafolio personal.</p>
+          {/* Header */}
+          <div className="share-modern-header">
+            <div className="share-header-content">
+              <h2 className="share-modern-title">
+                Comparte tus <span className="highlight">diseños</span>
+              </h2>
+              <p className="share-modern-subtitle">
+                Sube tus bocetos y compártelos con la comunidad. Elige entre modalidad pública
+                para mostrar al mundo o privada para tu portafolio personal.
+              </p>
+            </div>
+            <button className="share-cta-button" onClick={() => setShareModalOpen(true)}>
+              <Plus size={20} />
+              Subir Diseño
+            </button>
           </div>
 
-          <div className="share-content">
-            {/* Panel Izquierdo - Formulario de Subida */}
-            <div className="share-left">
-              <div className="upload-form-header">
-                <h3 className="upload-form-title">Nuevo Diseño</h3>
-                <p className="upload-form-subtitle">Sube tu boceto o modelo 3D y compártelo con la comunidad</p>
+          {/* Cards Grid */}
+          <div className="share-cards-grid">
+            {/* Card 1 - Diseño Público */}
+            <div className="share-feature-card">
+              <div className="share-card-icon public">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                </svg>
               </div>
-
-              {/* Selector de Tipo */}
-              <div className="upload-type-selector">
-                <button className="upload-type-button active">
-                  <Grid size={18} />
-                  Boceto 2D
-                </button>
-                <button className="upload-type-button">
-                  <Layers size={18} />
-                  Modelo 3D
-                </button>
-              </div>
-
-              {/* Área de Subida */}
-              <div className="upload-area">
-                <div className="upload-icon">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="17 8 12 3 7 8" />
-                    <line x1="12" y1="3" x2="12" y2="15" />
-                  </svg>
+              <h3 className="share-card-title">Comparte Públicamente</h3>
+              <p className="share-card-description">
+                Publica tus diseños y compártelos con miles de diseñadores.
+                Recibe feedback, likes y comentarios de la comunidad.
+              </p>
+              <div className="share-card-stats">
+                <div className="share-stat">
+                  <Heart size={16} />
+                  <span>234K Likes</span>
                 </div>
-                <p className="upload-area-text">Arrastra tu boceto aquí</p>
-                <p className="upload-area-subtext">o haz clic para seleccionar</p>
-                <button className="upload-button-select">Seleccionar Archivo</button>
-              </div>
-
-              {/* Título del Diseño */}
-              <div className="form-group">
-                <label className="form-label">Título del Diseño</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="Ej: Colección Primavera 2024"
-                />
-              </div>
-
-              {/* Descripción */}
-              <div className="form-group">
-                <label className="form-label">Descripción</label>
-                <textarea
-                  className="form-textarea"
-                  placeholder="Describe tu diseño, inspiración y técnicas utilizadas..."
-                />
-              </div>
-
-              {/* Toggle de Visibilidad */}
-              <div className="visibility-toggle">
-                <div className="visibility-info">
-                  <svg className="visibility-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                  <div className="visibility-text">
-                    <p className="visibility-title">Publicar públicamente</p>
-                    <p className="visibility-subtitle">Tu diseño será visible para toda la comunidad</p>
-                  </div>
+                <div className="share-stat">
+                  <Eye size={16} />
+                  <span>1.2M Vistas</span>
                 </div>
-                <div className="toggle-switch active"></div>
               </div>
-
-              {/* Botón Publicar */}
-              <button className="publish-button">
-                Publicar Diseño
-              </button>
             </div>
 
-            {/* Panel Derecho - Ejemplos de la Comunidad */}
-            <div className="share-right">
-              <div className="community-examples-header">
-                <h3 className="community-examples-title">Ejemplos de la comunidad</h3>
+            {/* Card 2 - Portafolio Privado */}
+            <div className="share-feature-card">
+              <div className="share-card-icon private">
+                <Lock size={24} />
               </div>
+              <h3 className="share-card-title">Portafolio Privado</h3>
+              <p className="share-card-description">
+                Guarda tus diseños de forma privada. Perfecto para trabajos en progreso
+                o proyectos que aún no quieres compartir.
+              </p>
+              <div className="share-card-features">
+                <div className="share-feature">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span>Solo visible para ti</span>
+                </div>
+                <div className="share-feature">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  <span>Almacenamiento seguro</span>
+                </div>
+              </div>
+            </div>
 
-              {/* Card 1 - Vestido Futurista */}
-              <div className="community-card">
-                <div className="community-card-header">
-                  <div className="community-card-image">
-                    <img
-                      src={comparte1}
-                      alt="Vestido Futurista"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-                    />
-                  </div>
-                  <div className="community-card-info">
-                    <h4 className="community-card-title">
-                      Vestido Futurista
-                      <span className="community-badge">2D</span>
-                    </h4>
-                    <p className="community-card-author">por @mara_designs</p>
-                  </div>
-                </div>
-                <div className="community-card-stats">
-                  <span className="stat-item-community likes">❤️ 234</span>
-                  <span className="stat-item-community comments">💬 18</span>
-                  <span className="stat-item-community views">👁️ 1.2k</span>
-                </div>
+            {/* Card 3 - Ejemplos */}
+            <div className="share-feature-card highlight">
+              <div className="share-examples-header">
+                <Sparkles size={20} />
+                <span>Inspiración de la comunidad</span>
               </div>
+              <div className="share-example-images">
+                <img src={comparte1} alt="Ejemplo 1" className="share-example-img" />
+                <img src={comparte2} alt="Ejemplo 2" className="share-example-img" />
+              </div>
+              <p className="share-examples-text">
+                Únete a más de <strong>10,000 diseñadores</strong> que ya comparten
+                sus creaciones en Éclat
+              </p>
+              <button className="share-explore-button" onClick={onOpenCollections}>
+                Explorar Diseños
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
 
-              {/* Card 2 - Bocetos Streetwear */}
-              <div className="community-card">
-                <div className="community-card-header">
-                  <div className="community-card-image">
-                    <img
-                      src={comparte2}
-                      alt="Bocetos Streetwear"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
-                    />
-                  </div>
-                  <div className="community-card-info">
-                    <h4 className="community-card-title">
-                      Bocetos Streetwear
-                      <span className="community-badge">3D</span>
-                    </h4>
-                    <p className="community-card-author">por @street_artist</p>
-                  </div>
-                </div>
-                <div className="community-card-stats">
-                  <span className="stat-item-community likes">❤️ 156</span>
-                  <span className="stat-item-community comments">💬 24</span>
-                  <span className="stat-item-community views">👁️ 890</span>
-                </div>
+          {/* CTA Bottom */}
+          <div className="share-cta-bottom">
+            <div className="share-cta-content">
+              <img src={Eclat} alt="Éclat Mascota" className="share-mascot" />
+              <div className="share-cta-text">
+                <h3>¿Listo para mostrar tu talento?</h3>
+                <p>Comparte tus diseños con la comunidad y comienza a crecer como diseñador</p>
               </div>
-
-              {/* Card 3 - Colección Privada */}
-              <div className="community-card private-card">
-                <div className="private-card-content">
-                  <div className="private-icon-wrapper">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
-                  </div>
-                  <div className="private-card-text">
-                    <h4 className="private-card-title">
-                      Colección Privada
-                      <span className="private-badge">Privado</span>
-                    </h4>
-                    <p className="private-card-subtitle">Solo visible para ti</p>
-                    <p className="private-card-description">
-                      Los diseños privados están disponibles en tu dashboard personal
-                    </p>
-                  </div>
-                </div>
-              </div>
+              <button className="share-cta-primary" onClick={() => setShareModalOpen(true)}>
+                Comenzar Ahora
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Modal */}
+        <ShareDesignModal
+          isOpen={shareModalOpen}
+          onClose={() => setShareModalOpen(false)}
+          userData={userData}
+          onPostCreated={() => {
+            console.log('✅ Post creado exitosamente');
+          }}
+        />
       </section>
 
-      {/* Sección Diseños Destacados */}
+      {/* ✅ Sección Diseños Destacados — ahora con datos dinámicos de la API */}
       <section className="featured-section">
         <div className="section-container">
           <div className="section-header">
@@ -763,99 +708,128 @@ export default function InicialEclat({
             <p className="section-subtitle">Descubre las creaciones más populares de nuestra comunidad de diseñadores</p>
           </div>
 
-          <div className="featured-grid">
-            {featuredDesigns.map((design) => (
-              <div key={design.id} className="featured-card">
-                <div className="featured-image">
-                  {design.image ? (
-                    <img
-                      src={design.image}
-                      alt={design.title}
-                      className="featured-design-image"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.parentElement.innerHTML += '<div class="image-placeholder">🎨</div>';
-                      }}
-                    />
-                  ) : (
-                    <div className="image-placeholder">🎨</div>
-                  )}
+          {/* Estado de carga */}
+          {isLoadingFeatured && (
+            <div style={{ textAlign: 'center', padding: '4rem', color: '#6b7280' }}>
+              <div style={{
+                margin: '0 auto 1rem',
+                width: '40px',
+                height: '40px',
+                border: '4px solid #f3f4f6',
+                borderTopColor: '#9333ea',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+              }} />
+              <p>Cargando diseños...</p>
+            </div>
+          )}
+
+          {/* Estado de error */}
+          {errorFeatured && !isLoadingFeatured && (
+            <div style={{ textAlign: 'center', padding: '4rem', color: '#ef4444' }}>
+              <p>❌ {errorFeatured}</p>
+            </div>
+          )}
+
+          {/* Grid de diseños dinámicos */}
+          {!isLoadingFeatured && !errorFeatured && (
+            <div className="featured-grid">
+              {featuredDesigns.length === 0 ? (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '4rem', color: '#6b7280' }}>
+                  <p>No hay diseños disponibles en este momento.</p>
                 </div>
-                <div className="featured-info">
-                  <h4>{design.title}</h4>
-                  <p>por {design.designer}</p>
-                  <div className="featured-stats">
-                    <span>❤️ {design.likes}</span>
-                    <span>💬 {Math.floor(design.views / 50)}</span>
-                    <span>👁️ {design.views}</span>
+              ) : (
+                featuredDesigns.map((design) => (
+                  <div key={design.id} className="featured-card">
+                    <div className="featured-image">
+                      {design.image ? (
+                        <img
+                          src={design.image}
+                          alt={design.title}
+                          className="featured-design-image"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                            e.target.parentElement.innerHTML += '<div class="image-placeholder">🎨</div>';
+                          }}
+                        />
+                      ) : (
+                        <div className="image-placeholder">🎨</div>
+                      )}
+                    </div>
+                    <div className="featured-info">
+                      <h4>{design.title}</h4>
+                      {/* ✅ Usar "author" que es el campo que devuelve la API */}
+                      <p>por {design.author}</p>
+                      <div className="featured-stats">
+                        <span>❤️ {design.likes ?? 0}</span>
+                        <span>💬 {Math.floor((design.views ?? 0) / 50)}</span>
+                      </div>
+                      <button className="featured-follow-btn">Seguir</button>
+                    </div>
                   </div>
-                  <button className="featured-follow-btn">Seguir</button>
-                </div>
-              </div>
-            ))}
-          </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Sección CTA — Tu perfil te espera */}
+      {/* Sección CTA */}
       <section className="inspiration-section">
         <div className="section-container">
           <div className="inspiration-content">
+
             <div className="inspiration-mascot">
               <img src={Eclat} alt="Mascota Éclat" />
             </div>
+
             <div className="inspiration-text">
               <span className="inspiration-eyebrow">Tu espacio creativo</span>
               <h2 className="section-title">
                 Tu próxima gran <span className="highlight">colección</span><br />empieza aquí
               </h2>
-              <p>Construye tu portafolio, conecta con la comunidad y lleva tu visión creativa al siguiente nivel desde tu perfil.</p>
+              <p>Construye tu portafolio, conecta con la comunidad y lleva tu visión creativa al siguiente nivel.</p>
               <div className="inspiration-actions">
-                <button className="btn-primary inspiration-cta" onClick={onOpenProfile}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
+                <button className="inspiration-cta-btn" onClick={onOpenProfile}>
+                  <span className="inspiration-cta-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </span>
+                  <span>Ir a mi perfil</span>
+                  <svg className="inspiration-cta-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
-                  Ir a mi perfil
-                </button>
-                <button className="btn-secondary inspiration-cta-secondary" onClick={onOpenEditor}>
-                  Subir diseño
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="footer">
+        <div className="footer-divider-top" />
         <div className="footer-container">
-
-          {/* Fila principal */}
           <div className="footer-main">
-            {/* Logo */}
             <div className="footer-brand">
               <div className="footer-logo">
                 <img src={LogoEclat} alt="Logo Éclat" />
                 <span>Éclat</span>
               </div>
-              <p className="footer-description">
-                La plataforma para diseñadores de moda emergentes.
-              </p>
+              <p className="footer-description">La plataforma para diseñadores de moda emergentes.</p>
             </div>
-
-            {/* Navegación */}
             <nav className="footer-nav">
               <button className="footer-nav-link" onClick={onNavigateHome}>Explorar</button>
               <button className="footer-nav-link" onClick={onOpenCollections}>Colecciones</button>
               <button className="footer-nav-link" onClick={onOpenDesigners}>Diseñadores</button>
               <button className="footer-nav-link" onClick={onOpenTrends}>Tendencias</button>
             </nav>
+            <div className="footer-divider" />
           </div>
-
-          {/* Footer Bottom */}
           <div className="footer-bottom">
-            <p className="footer-copy">© 2025 Éclat. Todos los derechos reservados.</p>
+            <p className="footer-copy">© 2026 Éclat. Todos los dereccios reservados.</p>
             <div className="footer-links">
               <a href="#">Términos</a>
               <span className="footer-dot">·</span>
@@ -864,9 +838,15 @@ export default function InicialEclat({
               <a href="#">Cookies</a>
             </div>
           </div>
-
         </div>
       </footer>
+
+      {/* Animación spinner */}
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

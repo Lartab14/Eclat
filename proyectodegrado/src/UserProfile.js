@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowLeft, Settings, MapPin, Calendar, Users, Heart, MessageCircle, Camera, Edit2, Upload, Plus, Image, FileText, X, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, Settings, MapPin, Calendar, Users, Heart, MessageCircle, Camera, Edit2, Upload, Plus, Image, FileText, X, Save, Trash2, LogOut } from 'lucide-react';
 import './UserProfile.css';
 import ShareDesignModal from './ShareDesignModal';
 
@@ -391,6 +391,16 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
               <div className="profile-stat-label">Siguiendo</div>
             </div>
           </div>
+
+          {/* Botón cerrar sesión */}
+          <div className="profile-sidebar-divider" />
+          <button
+            className="profile-logout-btn"
+            onClick={onLogout}
+          >
+            <LogOut size={16} />
+            <span>Cerrar sesión</span>
+          </button>
         </div>
 
         {/* Contenido */}
