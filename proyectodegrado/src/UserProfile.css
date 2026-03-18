@@ -314,7 +314,7 @@
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+  transition: 0.2s, border-color 0.2s, transform 0.15s;
 }
 
 .profile-logout-btn:hover {
