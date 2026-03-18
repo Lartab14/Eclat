@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, User, Sparkles, Layers, Download, X, RotateCcw, ZoomIn, ZoomOut, Info } from 'lucide-react';
+import { Search, Bell, User, Sparkles, Layers, Eye, Download, X, RotateCcw, ZoomIn, ZoomOut, Info } from 'lucide-react';
 import SearchBar from './Searchbar';
 import './Tendencias.css';
 
@@ -31,7 +31,7 @@ import Texture16 from './img/Text16.jpg';
 // ─── Modelos 3D (.glb) ────────────────────────────────────────────────────────
 // Descomenta cada línea cuando tengas el archivo .glb en src/models/
 // ─────────────────────────────────────────────────────────────────────────────
-import Model1  from './models/Seda.glb';
+import Model1 from './models/Seda.glb';
 // import Model2  from './models/terciopelo-premium.glb';
 // import Model3  from './models/metal-brushed.glb';
 // import Model4  from './models/cuero-sintetico.glb';
@@ -432,8 +432,7 @@ function FabricModal({ fabric, onClose }) {
 // ─── Componente principal ──────────────────────────────────────────────────────
 export default function Tendencias({
     onNavigateHome,
-    onOpenEditor,
-  onOpenWorkspace,
+    onOpenWorkspace,
     onOpenProfile,
     onOpenPublicProfile,
     onOpenCollections,
