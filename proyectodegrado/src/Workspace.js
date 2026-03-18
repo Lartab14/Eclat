@@ -101,16 +101,75 @@ export default function Workspace({ onBack, userData, draftDesign }) {
 
         if (draftDesign) {
             const rawUrl = draftDesign.imagen || draftDesign.imagen_url || draftDesign.image || draftDesign.url || '';
+            const rawDesc = draftDesign.descripcion || '';
+
+            // ✅ FIX CAPAS: si la descripción tiene el JSON de capas, restaurarlas
+            if (rawDesc.startsWith('LAYERS:')) {
+                try {
+                    const savedLayers = JSON.parse(rawDesc.replace('LAYERS:', ''));
+                    if (Array.isArray(savedLayers) && savedLayers.length > 0) {
+                        // Restaurar cada capa con su canvasData
+                        const restoredLayers = savedLayers.map(l => ({
+                            id: l.id,
+                            name: l.name,
+                            opacity: l.opacity ?? 100,
+                            visible: l.visible ?? true,
+                            canvasData: l.canvasData || null
+                        }));
+
+                        // Crear los canvas de cada capa y dibujar su contenido
+                        let pendingLoads = restoredLayers.filter(l => l.canvasData).length;
+                        if (pendingLoads === 0) {
+                            setLayers(restoredLayers);
+                            setActiveLayerId(restoredLayers[restoredLayers.length - 1].id);
+                            saveToHistory();
+                        } else {
+                            restoredLayers.forEach(layer => {
+                                const lc = document.createElement('canvas');
+                                lc.width = 1200;
+                                lc.height = 800;
+                                layerCanvasRefs.current[layer.id] = lc;
+
+                                if (layer.canvasData) {
+                                    const img = new Image();
+                                    img.onload = () => {
+                                        lc.getContext('2d').drawImage(img, 0, 0);
+                                        pendingLoads--;
+                                        if (pendingLoads === 0) {
+                                            // Todas las capas cargadas, componer y mostrar
+                                            compositeCtx.clearRect(0, 0, composite.width, composite.height);
+                                            compositeCtx.fillStyle = 'white';
+                                            compositeCtx.fillRect(0, 0, composite.width, composite.height);
+                                            restoredLayers.forEach(rl => {
+                                                if (!rl.visible) return;
+                                                const rlc = layerCanvasRefs.current[rl.id];
+                                                if (!rlc) return;
+                                                compositeCtx.globalAlpha = rl.opacity / 100;
+                                                compositeCtx.drawImage(rlc, 0, 0);
+                                            });
+                                            compositeCtx.globalAlpha = 1;
+                                            setLayers(restoredLayers);
+                                            setActiveLayerId(restoredLayers[restoredLayers.length - 1].id);
+                                            saveToHistory();
+                                        }
+                                    };
+                                    img.onerror = () => { pendingLoads--; };
+                                    img.src = layer.canvasData;
+                                }
+                            });
+                        }
+                        return; // No continuar con la carga de imagen simple
+                    }
+                } catch (e) {
+                    console.warn('Error restaurando capas:', e);
+                }
+            }
+
             if (rawUrl) {
                 const fullUrl = rawUrl.startsWith('http') || rawUrl.startsWith('data:')
                     ? rawUrl
                     : `${API_URL}${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`;
 
-                // ─── FIX PRINCIPAL: cargamos SIN crossOrigin primero ────────────
-                // Sin crossOrigin el navegador puede mostrar la imagen, aunque
-                // toDataURL() quede "contaminado". Para evitar el canvas tainted
-                // usamos un proxy de conversión: fetch → blob → objectURL.
-                // Así siempre tenemos un dataURL limpio sin depender de headers CORS.
                 const loadViaFetch = async () => {
                     try {
                         const res = await fetch(fullUrl);
@@ -121,19 +180,18 @@ export default function Workspace({ onBack, userData, draftDesign }) {
                         const img = new Image();
                         img.onload = () => {
                             const ctx = layer1Canvas.getContext('2d');
-                            const scale = Math.min(layer1Canvas.width / img.width, layer1Canvas.height / img.height);
+                            // ✅ FIX PIXELADO: dibujar 1:1 sin escalar si la imagen cabe
+                            const scale = Math.min(layer1Canvas.width / img.width, layer1Canvas.height / img.height, 1);
                             const x = (layer1Canvas.width - img.width * scale) / 2;
                             const y = (layer1Canvas.height - img.height * scale) / 2;
                             ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
                             URL.revokeObjectURL(objectUrl);
 
-                            // canvasData limpio para serialización
-                            const dataUrl = layer1Canvas.toDataURL();
+                            const dataUrl = layer1Canvas.toDataURL('image/png');
                             setLayers(prev => prev.map(l =>
                                 l.id === 1 ? { ...l, canvasData: dataUrl } : l
                             ));
 
-                            // Pintar composite inmediatamente
                             compositeCtx.clearRect(0, 0, composite.width, composite.height);
                             compositeCtx.fillStyle = 'white';
                             compositeCtx.fillRect(0, 0, composite.width, composite.height);
@@ -501,14 +559,13 @@ export default function Workspace({ onBack, userData, draftDesign }) {
         }
         setIsSaving(true);
         try {
-            // ── FIX CRÍTICO: reconstruir el composite manualmente antes de toBlob ──
-            // Garantiza que el canvas no esté vacío por timing de React.
             const canvas = compositeCanvasRef.current;
             const ctx = canvas.getContext('2d');
+
+            // ✅ FIX PIXELADO: dibujar 1:1 sin escalar
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            // Usar layersRef.current para leer el estado más reciente sin depender de closure
             layersRef.current.forEach(layer => {
                 if (!layer.visible) return;
                 const lc = layerCanvasRefs.current[layer.id];
@@ -518,11 +575,22 @@ export default function Workspace({ onBack, userData, draftDesign }) {
             });
             ctx.globalAlpha = 1;
 
-            // Ahora sí, capturar el blob
-            const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
-            if (!blob || blob.size < 1000) {
-                // Blob muy pequeño = canvas probablemente vacío; advertir
-                console.warn('⚠️ El blob del canvas parece vacío. Tamaño:', blob?.size);
+            // ✅ FIX CAPAS: serializar todas las capas con su contenido actual
+            const layersSnapshot = layersRef.current.map(layer => {
+                const lc = layerCanvasRefs.current[layer.id];
+                return {
+                    id: layer.id,
+                    name: layer.name,
+                    opacity: layer.opacity,
+                    visible: layer.visible,
+                    canvasData: lc ? lc.toDataURL('image/png') : (layer.canvasData || null)
+                };
+            });
+
+            // Imagen composite para previsualización
+            const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png', 1.0));
+            if (!blob || blob.size < 500) {
+                console.warn('⚠️ Blob vacío, tamaño:', blob?.size);
             }
             const file = new File([blob], `${saveTitle || 'boceto'}.png`, { type: 'image/png' });
 
@@ -533,6 +601,9 @@ export default function Workspace({ onBack, userData, draftDesign }) {
             if (!uploadRes.ok) throw new Error('Error al subir la imagen');
             const uploadData = await uploadRes.json();
             const imageUrl = uploadData.imageUrl;
+
+            // Guardar las capas como JSON en la descripción para restaurarlas al reabrir
+            const descripcion = `LAYERS:${JSON.stringify(layersSnapshot)}`;
 
             if (draftId) {
                 try {
@@ -552,7 +623,7 @@ export default function Workspace({ onBack, userData, draftDesign }) {
                 body: JSON.stringify({
                     id_usuario: userData.id_usuario,
                     titulo: saveTitle || 'Boceto sin título',
-                    descripcion: draftId ? 'Editado en Éclat Studio' : 'Creado en Éclat Studio',
+                    descripcion,
                     tipo_diseño: 'boceto',
                     visibilidad: 'privado',
                     imagen_url: imageUrl,
@@ -561,7 +632,7 @@ export default function Workspace({ onBack, userData, draftDesign }) {
             if (!designRes.ok) throw new Error('Error al guardar el diseño');
 
             const designData = await designRes.json();
-            const newId = designData?.diseño?.id || designData?.id || null;
+            const newId = designData?.diseño?.id_diseño || designData?.diseño?.id || designData?.id || null;
             if (newId) setDraftId(newId);
 
             setShowSaveModal(false);
