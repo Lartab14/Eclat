@@ -158,7 +158,8 @@ const obtenerUsuariosAleatorios = async (req, res) => {
   try {
     const { limit = 12 } = req.query;
 
-    const todosLosUsuarios = await usuarioService.obtenerUsuarios();
+    // ✅ Usar obtenerUsuariosConStats para traer seguidores, diseños y likes reales
+    const todosLosUsuarios = await usuarioService.obtenerUsuariosConStats();
     const diseñadores = todosLosUsuarios.filter(u => u.rol === 'diseñador');
 
     const usuariosAleatorios = diseñadores
@@ -174,6 +175,7 @@ const obtenerUsuariosAleatorios = async (req, res) => {
 
     const usuariosFormateados = usuariosAleatorios.map(usuario => {
       const infoAdicional = parseInfoAdicional(usuario.informacion_adicional);
+      const stats = usuario.stats || { posts: 0, likes: 0, followers: 0, following: 0 };
 
       return {
         id: usuario.id_usuario,
@@ -183,16 +185,15 @@ const obtenerUsuariosAleatorios = async (req, res) => {
         username: '@' + usuario.nombre_usuario.toLowerCase().replace(/\s+/g, ''),
         specialty: infoAdicional.especialidad || usuario.descripcion || 'Diseño de Moda',
         location: infoAdicional.ubicacion || 'Sin ubicación',
-        // ✅ Devolver URLs directamente — Cloudinary ya las tiene completas
         coverImage: infoAdicional.foto_portada || null,
         avatarImage: usuario.foto_perfil || null,
         foto_perfil: usuario.foto_perfil || null,
         foto_portada: infoAdicional.foto_portada || null,
         badge: infoAdicional.destacado ? 'Destacado' : null,
-        // ✅ Stats reales en lugar de números aleatorios
-        followers: formatNumber(0),
-        projects: formatNumber(0),
-        likes: formatNumber(0),
+        // ✅ Stats reales desde la BD
+        followers: formatNumber(stats.followers),
+        projects: formatNumber(stats.posts),
+        likes: formatNumber(stats.likes),
       };
     });
 

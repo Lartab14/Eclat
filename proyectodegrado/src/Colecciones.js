@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, User, Users, Heart, Eye } from 'lucide-react';
+import { Search, User, Users, Heart } from 'lucide-react';
 import SearchBar from './Searchbar';  // ← NUEVO
 import './Colecciones.css';
 
@@ -235,7 +235,6 @@ export default function Colecciones({
                         <p className="item-author">{item.author}</p>
                         <div className="item-stats">
                           <span className="item-stat">❤️ {item.likes}</span>
-                          <span className="item-stat">👁️ {item.views}</span>
                         </div>
                       </div>
                     </div>

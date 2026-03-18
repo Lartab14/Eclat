@@ -26,6 +26,27 @@ const obtenerUsuarios = async () => {
   return prisma.usuario.findMany();
 };
 
+// ✅ Igual que obtenerUsuarios pero incluye _count para stats reales
+const obtenerUsuariosConStats = async () => {
+  const usuarios = await prisma.usuario.findMany({
+    include: {
+      _count: {
+        select: {
+          seguidores: true,
+          seguidos: true,
+          diseños: true,
+          likes: true
+        }
+      }
+    }
+  });
+  return usuarios.map(u => {
+    const mapped = { ...u, stats: mapearStats(u._count) };
+    delete mapped._count;
+    return mapped;
+  });
+};
+
 const mapearStats = (count) => ({
   posts: count.diseños,
   likes: count.likes,
@@ -157,6 +178,7 @@ const actualizarPerfil = async (id, data) => {
 module.exports = {
   crearUsuario,
   obtenerUsuarios,
+  obtenerUsuariosConStats,
   obtenerUsuarioPorId,
   autenticarUsuario,
   actualizarPerfil
