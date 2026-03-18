@@ -178,11 +178,13 @@ module.exports = {
       const diseñosFormateados = diseños.map(diseño => ({
         id: diseño.id_diseño,
         titulo: diseño.titulo,
-        descripcion: diseño.descripcion,
+        descripcion: diseño.descripcion || '',
         imagen: diseño.archivos[0]?.ruta_archivo || '',
+        imagen_url: diseño.archivos[0]?.ruta_archivo || '',
+        visibilidad: diseño.visibilidad,
         status: diseño.visibilidad === 'publico' ? 'Público' : 'Privado',
-        likes: diseño.likes?.length || 0,        // ✅ directo del diseño
-        comments: diseño.comentarios?.length || 0, // ✅ directo del diseño
+        likes: diseño.likes?.length || 0,
+        comments: diseño.comentarios?.length || 0,
         fecha_subida: diseño.fecha_subida,
         usuario: diseño.usuario
       }));
