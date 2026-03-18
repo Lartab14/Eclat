@@ -11,6 +11,8 @@
 .profile-header {
   position: relative;
   width: 100%;
+  max-width: 1400px;  /* ← AGREGADO /
+  margin: 0 auto;     / ← AGREGADO */
 }
 
 .profile-cover-container {
