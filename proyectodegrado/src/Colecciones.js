@@ -233,9 +233,6 @@ export default function Colecciones({
                       <div className="item-info">
                         <h3 className="item-title">{item.title}</h3>
                         <p className="item-author">{item.author}</p>
-                        <div className="item-stats">
-                          <span className="item-stat">❤️ {item.likes}</span>
-                        </div>
                       </div>
                     </div>
                   </div>

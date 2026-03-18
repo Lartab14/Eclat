@@ -760,10 +760,6 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
                       <h4>{design.title}</h4>
                       {/* ✅ Usar "author" que es el campo que devuelve la API */}
                       <p>por {design.author}</p>
-                      <div className="featured-stats">
-                        <span>❤️ {design.likes ?? 0}</span>
-                        <span>💬 {Math.floor((design.views ?? 0) / 50)}</span>
-                      </div>
                       <button className="featured-follow-btn">Seguir</button>
                     </div>
                   </div>
