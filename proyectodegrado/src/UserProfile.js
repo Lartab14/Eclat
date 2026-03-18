@@ -451,7 +451,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                   })}
                 </div>
 
-                ✅ Sección de upload con ShareDesignModal
+                
                 <div className="profile-upload-section">
                   <div className="profile-upload-icon"><Upload size={32} /></div>
                   <h3 className="profile-upload-title">Sube tus diseños</h3>
