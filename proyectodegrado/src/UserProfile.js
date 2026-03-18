@@ -451,7 +451,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                   })}
                 </div>
 
-                {/* ✅ Sección de upload con ShareDesignModal */}
+                ✅ Sección de upload con ShareDesignModal
                 <div className="profile-upload-section">
                   <div className="profile-upload-icon"><Upload size={32} /></div>
                   <h3 className="profile-upload-title">Sube tus diseños</h3>
@@ -514,7 +514,14 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
             </div>
 
             <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f3f4f6' }}>
-              <h3 style={{ margin: '0 0 0.75rem' }}>{selectedDesign.titulo}</h3>
+              <h3 style={{ margin: '0 0 0.4rem', fontSize: '1.1rem', fontWeight: '700', color: '#1f2937' }}>
+                {selectedDesign.titulo}
+              </h3>
+              {selectedDesign.descripcion && selectedDesign.descripcion !== 'Compartido desde Éclat' && (
+                <p style={{ margin: '0 0 0.875rem', fontSize: '0.9rem', color: '#6b7280', lineHeight: '1.5' }}>
+                  {selectedDesign.descripcion}
+                </p>
+              )}
               <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
                 <button onClick={handleToggleLike} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', color: modalLikes.liked ? '#ef4444' : '#6b7280', fontWeight: '600', fontSize: '1rem' }}>
                   <Heart size={22} fill={modalLikes.liked ? '#ef4444' : 'none'} />{modalLikes.total}
