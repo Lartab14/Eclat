@@ -315,10 +315,6 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
             <button className="upload-button" onClick={onOpenWorkspace}>
               Crear diseño
             </button>
-            <button className="icon-button">
-              <Bell />
-              <span className="notification-dot"></span>
-            </button>
             <button className="icon-button" onClick={onOpenProfile}>
               <User />
             </button>
@@ -766,7 +762,6 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
                       <div className="featured-stats">
                         <span>❤️ {design.likes ?? 0}</span>
                         <span>💬 {Math.floor((design.views ?? 0) / 50)}</span>
-                        <span>👁️ {design.views ?? 0}</span>
                       </div>
                       <button className="featured-follow-btn">Seguir</button>
                     </div>
