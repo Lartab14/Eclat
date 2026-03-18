@@ -276,7 +276,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
   // ✅ Botones de upload reutilizables
   const UploadButtons = () => (
     <div className="profile-upload-buttons">
-      <button className="profile-upload-btn" onClick={() => uploadInputRef.current?.click()}>
+      <button className="profile-upload-btn"  onClick={() => setShareModalOpen(true)}>
         <Image size={20} />Subir Archivos
       </button>
       <button className="profile-upload-btn profile-upload-btn-secondary" onClick={handleCreateCanvas}>
@@ -476,7 +476,14 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
         </div>
       </div>
 
-      
+      {/* ✅ File input oculto — dispara el ShareDesignModal */}
+      <input
+        ref={uploadInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleFileSelected}
+      />
 
       {/* ✅ ShareDesignModal con los archivos seleccionados */}
       <ShareDesignModal
