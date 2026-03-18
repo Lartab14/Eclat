@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, User, Users, Heart, Eye } from 'lucide-react';
-import SearchBar from './Searchbar';  // ← NUEVO
+import { Search, Bell, User, Users, Heart, Eye , X } from 'lucide-react';
 import './Colecciones.css';
 
 // Importar imágenes
@@ -8,7 +7,7 @@ import LogoEclat from './img/LogoEclat.png';
 import Eclat from './img/Eclat.png';
 
 // Importar VIDEO del hero (en lugar de imagen)
-import HeroVideo from './img/Colección Aesir.mp4'; 
+import HeroVideo from './img/Tendencias.mp4'; // <-- CAMBIO: Ahora es video
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
@@ -16,12 +15,12 @@ export default function Colecciones({
   onNavigateHome,
   onOpenEditor,
   onOpenProfile,
-  onOpenPublicProfile,  
   onOpenDesigners,
   onOpenTrends,
   isAuthenticated
 }) {
   const [email, setEmail] = useState('');
+  const [mobileOpen, setMobileOpen] = React.useState(false);
   const [galleryItems, setGalleryItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,7 +35,7 @@ export default function Colecciones({
     setError(null);
 
     try {
-      const response = await fetch(`${API_URL}/designs/random?limit=16`);
+      const response = await fetch(`${API_URL}/api/posts/random?limit=16`);
 
       if (!response.ok) {
         throw new Error('Error al cargar las colecciones');
@@ -44,13 +43,11 @@ export default function Colecciones({
 
       const data = await response.json();
 
-      console.log('Colecciones data: ', data);
-
-      if (data.success && data.designs) {
+      if (data.success && data.posts) {
         // Formatear las rutas de las imágenes
-        const postsFormateados = data.designs.map(post => ({
+        const postsFormateados = data.posts.map(post => ({
           ...post,
-          image: post.image ?? null
+          image: post.image ? `${API_URL}${post.image}` : null
         }));
 
         setGalleryItems(postsFormateados);
@@ -59,7 +56,7 @@ export default function Colecciones({
       }
 
     } catch (error) {
-      console.error('❌ Error al cargar designs:', error);
+      console.error('❌ Error al cargar posts:', error);
       setError(error.message);
       setGalleryItems([]);
     } finally {
@@ -73,6 +70,8 @@ export default function Colecciones({
     setEmail('');
   };
 
+
+  const closeMobileNav = () => setMobileOpen(false);
   return (
     <div className="collections-page">
       {/* Header */}
@@ -93,10 +92,11 @@ export default function Colecciones({
           </nav>
 
           <div className="header-actions">
-            {/* ← CAMBIO: SearchBar reemplaza al botón Search */}
-            <SearchBar onOpenPublicProfile={onOpenPublicProfile} />
+            <button className="icon-button">
+              <Search />
+            </button>
             <button className="upload-button" onClick={onOpenEditor}>
-              Crear diseño
+              Subir diseño
             </button>
             <button className="icon-button">
               <Bell />
@@ -104,11 +104,32 @@ export default function Colecciones({
             <button className="icon-button" onClick={onOpenProfile}>
               <User />
             </button>
+
+                {/* Hamburguesa móvil */}
+                <button
+                  className={`hamburger ${mobileOpen ? 'open' : ''}`}
+                  onClick={() => setMobileOpen(o => !o)}
+                  aria-label="Menú"
+                >
+                  <span /><span /><span />
+                </button>
           </div>
         </div>
       </header>
 
-      {/* Hero Section con VIDEO */}
+      {/* ── Drawer navegación móvil ─────────────────────── */}
+      <div className={`mobile-nav-drawer ${mobileOpen ? 'open' : ''}`}>
+        <div className="mobile-nav-backdrop" onClick={closeMobileNav} />
+        <div className="mobile-nav-panel">
+          <button className="mobile-nav-close" onClick={closeMobileNav}>✕</button>
+          <button className="mobile-nav-link" onClick={() => { closeMobileNav(); onNavigateHome(); }}>Explorar</button>
+          <button className="mobile-nav-link active">Colecciones</button>
+          <button className="mobile-nav-link" onClick={() => { closeMobileNav(); onOpenDesigners(); }}>Diseñadores</button>
+          <button className="mobile-nav-link" onClick={() => { closeMobileNav(); onOpenTrends(); }}>Tendencias</button>
+          <div className="mobile-nav-divider" />
+        </div>
+      </div>
+      {/* Hero Section con VIDEO - ESTRUCTURA TENDENCIAS */}
       <section className="hero-section">
         {/* VIDEO BACKGROUND */}
         <video
@@ -249,7 +270,7 @@ export default function Colecciones({
         </div>
       </section>
 
-      {/* Sección CTA - MODERNIZADA */}
+      {/* Sección CTA */}
       <section className="inspiration-section">
         <div className="section-container">
           <div className="inspiration-content">
@@ -283,7 +304,7 @@ export default function Colecciones({
         </div>
       </section>
 
-      {/* Footer - MODERNIZADO */}
+      {/* Footer */}
       <footer className="footer">
         <div className="footer-divider-top" />
 
@@ -312,7 +333,7 @@ export default function Colecciones({
 
           {/* Bottom */}
           <div className="footer-bottom">
-            <p className="footer-copy">© 2026 Éclat. Todos los derechos reservados.</p>
+            <p className="footer-copy">© 2025 Éclat. Todos los derechos reservados.</p>
             <div className="footer-links">
               <a href="#">Términos</a>
               <span className="footer-dot">·</span>
@@ -324,13 +345,6 @@ export default function Colecciones({
 
         </div>
       </footer>
-
-      {/* Estilos para la animación de carga */}
-      <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }
