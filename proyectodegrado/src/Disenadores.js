@@ -137,7 +137,9 @@ export default function Disenadores({
 
           <div className="header-actions">
             <SearchBar onOpenPublicProfile={onOpenPublicProfile} />
-            <button className="upload-button" onClick={onOpenWorkspace}>Crear diseño</button>
+            <button className="upload-button" onClick={onOpenWorkspace}>
+              Crear diseño
+            </button>
 
             <button className="icon-button" onClick={onOpenProfile}><User /></button>
           </div>

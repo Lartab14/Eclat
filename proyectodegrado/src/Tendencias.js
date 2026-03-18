@@ -575,7 +575,7 @@ export default function Tendencias({
                         {/* ← CAMBIO: SearchBar reemplaza al botón Search */}
                         <SearchBar onOpenPublicProfile={onOpenPublicProfile} />
                         <button className="upload-button" onClick={onOpenWorkspace}>
-                            Crear diseño
+                        Crear diseño
                         </button>
                         <button className="icon-button" onClick={onOpenProfile}>
                             <User />
