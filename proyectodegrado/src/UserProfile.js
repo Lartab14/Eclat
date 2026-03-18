@@ -25,23 +25,22 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
 
   const [publicDesigns, setPublicDesigns] = useState([]);
   const [privateDesigns, setPrivateDesigns] = useState([]);
-
-  // ✅ Stats en tiempo real desde la BD
   const [liveStats, setLiveStats] = useState(userDataProp?.stats || { posts: 0, likes: 0, followers: 0, following: 0 });
 
-  // ✅ Modal de diseño propio
+  // Modal de compartir diseño
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState([]);
+
+  // Modal de diseño propio (likes/comentarios)
   const [selectedDesign, setSelectedDesign] = useState(null);
   const [modalLikes, setModalLikes] = useState({ total: 0, liked: false });
   const [modalComments, setModalComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [isPostingComment, setIsPostingComment] = useState(false);
 
-  // ✅ Estados para modal de compartir diseño (igual que InicialEclat)
-  const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [pendingFiles, setPendingFiles] = useState([]);
-
   const coverInputRef = useRef(null);
   const avatarInputRef = useRef(null);
+  // ✅ File input oculto para seleccionar archivo antes de abrir el modal
   const uploadInputRef = useRef(null);
 
   const generateUsername = (name) => {
@@ -62,7 +61,6 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     stats: liveStats,
   };
 
-  // ✅ Cargar stats reales desde la BD
   const cargarStats = useCallback(async () => {
     if (!userDataProp?.id_usuario) return;
     try {
@@ -74,19 +72,16 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     }
   }, [userDataProp?.id_usuario]);
 
-  useEffect(() => {
-    cargarDiseños();
-    cargarStats();
-  }, [userDataProp?.id_usuario]);
-
-  const cargarDiseños = async () => {
+  const cargarDiseños = useCallback(async () => {
     if (!userDataProp?.id_usuario) return;
     setIsLoadingDesigns(true);
     try {
-      const responsePublic = await fetch(`${API_URL}/designs/usuario/${userDataProp.id_usuario}?visibilidad=publico`);
-      const dataPublic = await responsePublic.json();
-      const responsePrivate = await fetch(`${API_URL}/designs/usuario/${userDataProp.id_usuario}?visibilidad=privado`);
-      const dataPrivate = await responsePrivate.json();
+      const [resPublic, resPrivate] = await Promise.all([
+        fetch(`${API_URL}/designs/usuario/${userDataProp.id_usuario}?visibilidad=publico`),
+        fetch(`${API_URL}/designs/usuario/${userDataProp.id_usuario}?visibilidad=privado`)
+      ]);
+      const dataPublic = await resPublic.json();
+      const dataPrivate = await resPrivate.json();
       if (dataPublic.success) setPublicDesigns(dataPublic.diseños || []);
       if (dataPrivate.success) setPrivateDesigns(dataPrivate.diseños || []);
     } catch (error) {
@@ -94,7 +89,12 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     } finally {
       setIsLoadingDesigns(false);
     }
-  };
+  }, [userDataProp?.id_usuario]);
+
+  useEffect(() => {
+    cargarDiseños();
+    cargarStats();
+  }, [userDataProp?.id_usuario]);
 
   const handleCoverChange = async (e) => {
     const file = e.target.files[0];
@@ -106,11 +106,8 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
         const response = await fetch(`${API_URL}/upload/${userDataProp.id_usuario}/cover`, { method: 'POST', body: formData });
         const data = await response.json();
         setCoverImage(data.imageUrl);
-      } catch (error) {
-        alert('Error al subir la imagen de portada');
-      } finally {
-        setIsUploadingCover(false);
-      }
+      } catch { alert('Error al subir la imagen de portada'); }
+      finally { setIsUploadingCover(false); }
     }
   };
 
@@ -124,17 +121,12 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
         const response = await fetch(`${API_URL}/upload/${userDataProp.id_usuario}/avatar`, { method: 'POST', body: formData });
         const data = await response.json();
         setAvatarImage(data.imageUrl);
-      } catch (error) {
-        alert('Error al subir la imagen de perfil');
-      } finally {
-        setIsUploadingAvatar(false);
-      }
+      } catch { alert('Error al subir la imagen de perfil'); }
+      finally { setIsUploadingAvatar(false); }
     }
   };
 
-  const handleInputChange = (field, value) => {
-    setEditData(prev => ({ ...prev, [field]: value }));
-  };
+  const handleInputChange = (field, value) => setEditData(prev => ({ ...prev, [field]: value }));
 
   const toggleEditMode = () => {
     if (isEditMode) {
@@ -155,68 +147,46 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     try {
       const userId = userDataProp?.id_usuario;
       if (!userId) throw new Error('Usuario no autenticado');
-
       const response = await fetch(`${API_URL}/usuarios/perfil/${userId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: editData.name,
-          bio: editData.bio,
-          location: editData.location,
-          age: editData.age,
-          avatarImage: avatarImage,
-          coverImage: coverImage,
-        })
+        body: JSON.stringify({ name: editData.name, bio: editData.bio, location: editData.location, age: editData.age, avatarImage, coverImage })
       });
-
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.error || errData.details || 'Error al guardar el perfil');
+        throw new Error(errData.error || 'Error al guardar el perfil');
       }
-
-      const data = await response.json();
-      console.log('✅ Perfil guardado en BD:', data);
-
       const updatedProfile = {
         ...userDataProp,
-        name: editData.name,
-        nombre_usuario: editData.name,
-        bio: editData.bio,
-        descripcion: editData.bio,
-        location: editData.location,
-        ubicacion: editData.location,
+        name: editData.name, nombre_usuario: editData.name,
+        bio: editData.bio, descripcion: editData.bio,
+        location: editData.location, ubicacion: editData.location,
         age: editData.age,
-        avatarImage: avatarImage,
-        foto_perfil: avatarImage,
-        coverImage: coverImage,
-        foto_portada: coverImage,
+        avatarImage, foto_perfil: avatarImage,
+        coverImage, foto_portada: coverImage,
       };
-
       if (onUpdateProfile) await onUpdateProfile(updatedProfile);
       setIsEditMode(false);
       alert('Perfil actualizado exitosamente ✅');
     } catch (error) {
-      console.error('❌ Error al guardar el perfil:', error);
       alert(`Error al guardar los cambios: ${error.message}`);
     } finally {
       setIsSaving(false);
     }
   };
 
-  const handleFileUpload = (e) => {
+  // ✅ Al seleccionar archivo, guardar y abrir el ShareDesignModal
+  const handleFileSelected = (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     if (!userDataProp?.id_usuario) { alert('Error: Usuario no autenticado'); return; }
-    // ✅ Guardar archivos pendientes y abrir ShareDesignModal (igual que InicialEclat)
     setPendingFiles(Array.from(files));
     setShareModalOpen(true);
-    // Limpiar el input para permitir re-selección del mismo archivo
-    e.target.value = '';
+    e.target.value = ''; // limpiar para permitir re-selección
   };
 
-  // ✅ Callback cuando el post se crea exitosamente desde el modal
+  // ✅ Callback cuando el post se crea exitosamente
   const handlePostCreated = async () => {
-    console.log('✅ Post creado exitosamente desde UserProfile');
     setPendingFiles([]);
     await cargarDiseños();
     await cargarStats();
@@ -235,17 +205,14 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
       await cargarStats();
       alert('Diseño eliminado exitosamente ✅');
     } catch (error) {
-      console.error('❌ Error al eliminar diseño:', error);
       alert('Error al eliminar el diseño: ' + error.message);
     }
   };
 
-  // ✅ Abrir modal de diseño propio con likes y comentarios reales
   const handleOpenDesignModal = async (design) => {
     setSelectedDesign(design);
     setModalComments([]);
     setModalLikes({ total: design.likes || 0, liked: false });
-
     try {
       const [likesRes, commentsRes] = await Promise.all([
         fetch(`${API_URL}/likes/design/${design.id}?id_usuario=${userDataProp.id_usuario}`),
@@ -260,7 +227,6 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     }
   };
 
-  // ✅ Toggle like en post propio
   const handleToggleLike = async () => {
     try {
       const res = await fetch(`${API_URL}/likes/design/${selectedDesign.id}/toggle`, {
@@ -270,10 +236,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
       });
       const data = await res.json();
       if (data.success) {
-        setModalLikes(prev => ({
-          liked: data.liked,
-          total: data.liked ? prev.total + 1 : prev.total - 1
-        }));
+        setModalLikes(prev => ({ liked: data.liked, total: data.liked ? prev.total + 1 : prev.total - 1 }));
         setPublicDesigns(prev => prev.map(d =>
           d.id === selectedDesign.id
             ? { ...d, likes: data.liked ? (d.likes || 0) + 1 : Math.max((d.likes || 1) - 1, 0) }
@@ -281,12 +244,9 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
         ));
         await cargarStats();
       }
-    } catch (error) {
-      console.error('Error al dar like:', error);
-    }
+    } catch (error) { console.error('Error al dar like:', error); }
   };
 
-  // ✅ Publicar comentario en post propio
   const handlePostComment = async () => {
     if (!newComment.trim()) return;
     setIsPostingComment(true);
@@ -297,15 +257,9 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
         body: JSON.stringify({ id_usuario: userDataProp.id_usuario, contenido: newComment })
       });
       const data = await res.json();
-      if (data.success) {
-        setModalComments(prev => [data.comentario, ...prev]);
-        setNewComment('');
-      }
-    } catch (error) {
-      console.error('Error al comentar:', error);
-    } finally {
-      setIsPostingComment(false);
-    }
+      if (data.success) { setModalComments(prev => [data.comentario, ...prev]); setNewComment(''); }
+    } catch (error) { console.error('Error al comentar:', error); }
+    finally { setIsPostingComment(false); }
   };
 
   const handleCreateCanvas = () => { if (onOpenWorkspace) onOpenWorkspace(); };
@@ -319,14 +273,25 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     return `${API_URL}${raw.startsWith('/') ? '' : '/'}${raw}`;
   };
 
+  // ✅ Botones de upload reutilizables
+  const UploadButtons = () => (
+    <div className="profile-upload-buttons">
+      <button className="profile-upload-btn" onClick={() => uploadInputRef.current?.click()}>
+        <Image size={20} />Subir Archivos
+      </button>
+      <button className="profile-upload-btn profile-upload-btn-secondary" onClick={handleCreateCanvas}>
+        <Plus size={20} />Crear Nuevo Lienzo
+      </button>
+    </div>
+  );
+
   return (
     <div className="profile-container">
+      {/* Header */}
       <div className="profile-header">
         <div className="profile-cover-container">
           <img src={coverImage} alt="Cover" className="profile-cover-image" />
-          {isUploadingCover && (
-            <div className="upload-overlay"><div className="spinner"></div><p>Subiendo imagen...</p></div>
-          )}
+          {isUploadingCover && <div className="upload-overlay"><div className="spinner"></div><p>Subiendo imagen...</p></div>}
           {isEditMode && !isUploadingCover && (
             <button className="profile-change-cover-button" onClick={() => coverInputRef.current?.click()}>
               <Camera size={20} /><span>Cambiar portada</span>
@@ -356,6 +321,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
       </div>
 
       <div className="profile-main-content">
+        {/* Sidebar */}
         <div className="profile-sidebar">
           <div className="profile-avatar-wrapper">
             <div className="profile-avatar-container">
@@ -373,9 +339,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
           {isEditMode ? (
             <input type="text" className="profile-edit-input profile-name-input" value={editData.name}
               onChange={(e) => handleInputChange('name', e.target.value)} placeholder="Nombre" />
-          ) : (
-            <h2 className="profile-name">{userData.name}</h2>
-          )}
+          ) : <h2 className="profile-name">{userData.name}</h2>}
           <p className="profile-username">{userData.username}</p>
 
           <div className="profile-badges">
@@ -386,9 +350,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
           {isEditMode ? (
             <textarea className="profile-edit-textarea" value={editData.bio}
               onChange={(e) => handleInputChange('bio', e.target.value)} placeholder="Biografía" rows={4} />
-          ) : (
-            <p className="profile-bio">{userData.bio}</p>
-          )}
+          ) : <p className="profile-bio">{userData.bio}</p>}
 
           <div className="profile-info-list">
             <div className="profile-info-item">
@@ -411,7 +373,6 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
             </div>
           </div>
 
-          {/* ✅ Stats en tiempo real — se recargan desde BD */}
           <div className="profile-stats-container">
             <div className="profile-stat-item">
               <div className="profile-stat-number">{liveStats?.posts || 0}</div>
@@ -432,6 +393,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
           </div>
         </div>
 
+        {/* Contenido */}
         <div className="profile-content">
           <div className="profile-tabs">
             <button className={`profile-tab ${activeTab === 'public' ? 'profile-tab-active' : ''}`} onClick={() => setActiveTab('public')}>
@@ -458,7 +420,6 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                       <div
                         key={design.id}
                         className={`profile-design-card ${isPrivate ? 'profile-design-card--editable' : ''}`}
-                        // ✅ Públicos abren modal, privados abren workspace
                         onClick={isPrivate ? () => handleEditDraft(design) : () => handleOpenDesignModal(design)}
                         style={{ cursor: 'pointer' }}
                         title={isPrivate ? 'Haz clic para editar en Workspace' : 'Ver likes y comentarios'}
@@ -468,25 +429,18 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                             onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'flex'); }} />
                         ) : null}
                         <div className="profile-design-placeholder" style={{ display: imgSrc ? 'none' : 'flex' }}>
-                          <FileText size={40} color="#d1d5db" />
-                          <span>{design.titulo || 'Sin imagen'}</span>
+                          <FileText size={40} color="#d1d5db" /><span>{design.titulo || 'Sin imagen'}</span>
                         </div>
                         <div className="profile-design-overlay">
-                          {isPrivate && (
-                            <div className="profile-design-edit-badge"><Edit2 size={14} /><span>Editar en Workspace</span></div>
-                          )}
+                          {isPrivate && <div className="profile-design-edit-badge"><Edit2 size={14} /><span>Editar en Workspace</span></div>}
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
                             <span className="profile-design-status">{design.status || (design.visibilidad === 'privado' ? 'Privado' : 'Público')}</span>
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleDeleteDesign(design.id); }}
-                              style={{ background: 'rgba(239,68,68,0.9)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white' }}
-                            >
+                            <button onClick={(e) => { e.stopPropagation(); handleDeleteDesign(design.id); }}
+                              style={{ background: 'rgba(239,68,68,0.9)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white' }}>
                               <Trash2 size={18} />
                             </button>
                           </div>
-                          <div className="profile-design-info">
-                            <p className="profile-design-title">{design.titulo}</p>
-                          </div>
+                          <div className="profile-design-info"><p className="profile-design-title">{design.titulo}</p></div>
                           <div className="profile-design-stats">
                             <span className="profile-design-stat"><Heart size={16} fill="white" />{design.likes || 0}</span>
                             <span className="profile-design-stat"><MessageCircle size={16} />{design.comments || 0}</span>
@@ -497,19 +451,12 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                   })}
                 </div>
 
+                {/* ✅ Sección de upload con ShareDesignModal */}
                 <div className="profile-upload-section">
                   <div className="profile-upload-icon"><Upload size={32} /></div>
                   <h3 className="profile-upload-title">Sube tus diseños</h3>
                   <p className="profile-upload-subtitle">Arrastra y suelta archivos aquí o haz clic en los botones</p>
-                  <div className="profile-upload-buttons">
-                    <button className="profile-upload-btn" onClick={() => uploadInputRef.current?.click()}>
-                      <Image size={20} />Subir Archivos
-                    </button>
-                    <button className="profile-upload-btn profile-upload-btn-secondary" onClick={handleCreateCanvas}>
-                      <Plus size={20} />Crear Nuevo Lienzo
-                    </button>
-                  </div>
-                  <input ref={uploadInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleFileUpload} />
+                  <UploadButtons />
                 </div>
               </>
             ) : (
@@ -521,15 +468,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                   <div className="profile-upload-icon"><Upload size={32} /></div>
                   <h3 className="profile-upload-title">Sube tus diseños</h3>
                   <p className="profile-upload-subtitle">Arrastra y suelta archivos aquí o haz clic en los botones</p>
-                  <div className="profile-upload-buttons">
-                    <button className="profile-upload-btn" onClick={() => uploadInputRef.current?.click()}>
-                      <Image size={20} />Subir Archivos
-                    </button>
-                    <button className="profile-upload-btn profile-upload-btn-secondary" onClick={handleCreateCanvas}>
-                      <Plus size={20} />Crear Nuevo Lienzo
-                    </button>
-                  </div>
-                  <input ref={uploadInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleFileUpload} />
+                  <UploadButtons />
                 </div>
               </div>
             )}
@@ -537,7 +476,16 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
         </div>
       </div>
 
-      {/* ✅ Modal para compartir diseño (igual que InicialEclat) */}
+      {/* ✅ File input oculto — dispara el ShareDesignModal */}
+      <input
+        ref={uploadInputRef}
+        type="file"
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleFileSelected}
+      />
+
+      {/* ✅ ShareDesignModal con los archivos seleccionados */}
       <ShareDesignModal
         isOpen={shareModalOpen}
         onClose={() => { setShareModalOpen(false); setPendingFiles([]); }}
@@ -546,7 +494,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
         onPostCreated={handlePostCreated}
       />
 
-      {/* ✅ Modal de diseño propio con likes y comentarios */}
+      {/* Modal de diseño propio (likes y comentarios) */}
       {selectedDesign && (
         <div
           style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
@@ -556,28 +504,20 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
             style={{ background: 'white', borderRadius: '1rem', maxWidth: '800px', width: '100%', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
             onClick={e => e.stopPropagation()}
           >
-            {/* Imagen */}
             <div style={{ position: 'relative', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', maxHeight: '450px', overflow: 'hidden' }}>
-              <img
-                src={resolveImageUrl(selectedDesign)}
-                alt={selectedDesign.titulo}
-                style={{ width: '100%', height: 'auto', maxHeight: '450px', objectFit: 'contain', display: 'block' }}
-              />
-              <button
-                onClick={() => setSelectedDesign(null)}
-                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
+              <img src={resolveImageUrl(selectedDesign)} alt={selectedDesign.titulo}
+                style={{ width: '100%', height: 'auto', maxHeight: '450px', objectFit: 'contain', display: 'block' }} />
+              <button onClick={() => setSelectedDesign(null)}
+                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <X size={18} />
               </button>
             </div>
 
-            {/* Título y acciones */}
             <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f3f4f6' }}>
               <h3 style={{ margin: '0 0 0.75rem' }}>{selectedDesign.titulo}</h3>
               <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
                 <button onClick={handleToggleLike} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', color: modalLikes.liked ? '#ef4444' : '#6b7280', fontWeight: '600', fontSize: '1rem' }}>
-                  <Heart size={22} fill={modalLikes.liked ? '#ef4444' : 'none'} />
-                  {modalLikes.total}
+                  <Heart size={22} fill={modalLikes.liked ? '#ef4444' : 'none'} />{modalLikes.total}
                 </button>
                 <span style={{ color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <MessageCircle size={22} />{modalComments.length}
@@ -585,46 +525,32 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
               </div>
             </div>
 
-            {/* Comentarios */}
             <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 1.5rem' }}>
-              {/* Input nuevo comentario */}
               <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                <input
-                  type="text"
-                  value={newComment}
-                  onChange={e => setNewComment(e.target.value)}
+                <input type="text" value={newComment} onChange={e => setNewComment(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handlePostComment()}
                   placeholder="Escribe un comentario..."
-                  style={{ flex: 1, padding: '0.6rem 1rem', border: '1px solid #e5e7eb', borderRadius: '2rem', outline: 'none', fontSize: '0.9rem' }}
-                />
-                <button
-                  onClick={handlePostComment}
-                  disabled={isPostingComment || !newComment.trim()}
-                  style={{ padding: '0.6rem 1.2rem', background: '#9333ea', color: 'white', border: 'none', borderRadius: '2rem', cursor: 'pointer', opacity: (!newComment.trim() || isPostingComment) ? 0.5 : 1 }}
-                >
+                  style={{ flex: 1, padding: '0.6rem 1rem', border: '1px solid #e5e7eb', borderRadius: '2rem', outline: 'none', fontSize: '0.9rem' }} />
+                <button onClick={handlePostComment} disabled={isPostingComment || !newComment.trim()}
+                  style={{ padding: '0.6rem 1.2rem', background: '#9333ea', color: 'white', border: 'none', borderRadius: '2rem', cursor: 'pointer', opacity: (!newComment.trim() || isPostingComment) ? 0.5 : 1 }}>
                   Enviar
                 </button>
               </div>
 
-              {/* Lista de comentarios */}
               {modalComments.length === 0 ? (
                 <p style={{ textAlign: 'center', color: '#9ca3af' }}>Sin comentarios aún. ¡Sé el primero!</p>
-              ) : (
-                modalComments.map(c => (
-                  <div key={c.id_comentario} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
-                    <img
-                      src={c.usuario?.foto_perfil || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'}
-                      alt={c.usuario?.nombre_usuario}
-                      style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
-                      onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'; }}
-                    />
-                    <div>
-                      <p style={{ margin: 0, fontWeight: '600', fontSize: '0.85rem' }}>{c.usuario?.nombre_usuario}</p>
-                      <p style={{ margin: '0.2rem 0 0', fontSize: '0.9rem', color: '#374151' }}>{c.contenido}</p>
-                    </div>
+              ) : modalComments.map(c => (
+                <div key={c.id_comentario} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
+                  <img src={c.usuario?.foto_perfil || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'}
+                    alt={c.usuario?.nombre_usuario}
+                    style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'; }} />
+                  <div>
+                    <p style={{ margin: 0, fontWeight: '600', fontSize: '0.85rem' }}>{c.usuario?.nombre_usuario}</p>
+                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.9rem', color: '#374151' }}>{c.contenido}</p>
                   </div>
-                ))
-              )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
