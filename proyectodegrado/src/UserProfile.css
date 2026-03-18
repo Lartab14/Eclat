@@ -464,47 +464,54 @@
   font-weight: 600;
 }
 
-/* Upload Section - Movida al final después de los posts */
+/* Upload Section — mismo estilo que ShareDesignModal */
 .profile-upload-section {
   margin-top: 2rem;
-  background: linear-gradient(135deg, #f0f9ff 0%, #f5f3ff 100%);
-  border: 2px dashed #c7d2fe;
+  border: 2px dashed #d1d5db;
   border-radius: 16px;
-  padding: 3rem 2rem;
+  padding: 2.5rem 2rem;
   text-align: center;
+  cursor: pointer;
   transition: all 0.3s;
+  background: #f9fafb;
+  animation: fadeIn 0.3s ease;
 }
 
 .profile-upload-section:hover {
-  border-color: #6366f1;
-  background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%);
+  border-color: #9333ea;
+  background: #faf5ff;
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.15);
+  box-shadow: 0 12px 32px rgba(147, 51, 234, 0.12);
 }
 
 .profile-upload-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto 1.5rem;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-  border-radius: 50%;
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1.25rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #9333ea;
+  opacity: 0.75;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.profile-upload-section:hover .profile-upload-icon {
+  opacity: 1;
+  transform: scale(1.1);
 }
 
 .profile-upload-title {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #1f2937;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
 .profile-upload-subtitle {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   color: #6b7280;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
 }
 
 .profile-upload-buttons {
@@ -514,36 +521,42 @@
   flex-wrap: wrap;
 }
 
+/* Botón principal — igual que upload-btn del ShareDesignModal */
 .profile-upload-btn {
-  padding: 0.875rem 1.75rem;
-  background: #6366f1;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   color: white;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: transform 0.2s, box-shadow 0.2s;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 .profile-upload-btn:hover {
-  background: #4f46e5;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 8px 20px rgba(147, 51, 234, 0.35);
 }
 
+/* Botón secundario */
 .profile-upload-btn-secondary {
   background: white;
-  border: 2px solid #6366f1;
-  color: #6366f1;
+  border: 2px solid #9333ea;
+  color: #9333ea;
+  background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .profile-upload-btn-secondary:hover {
-  background: #f0f9ff;
-  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+  background: #faf5ff;
+  -webkit-text-fill-color: #7c3aed;
+  box-shadow: 0 8px 20px rgba(147, 51, 234, 0.2);
 }
 
 /* Empty State */
