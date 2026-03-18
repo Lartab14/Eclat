@@ -452,7 +452,12 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                 </div>
 
                 
-               
+                <div className="profile-upload-section">
+                  <div className="profile-upload-icon"><Upload size={32} /></div>
+                  <h3 className="profile-upload-title">Sube tus diseños</h3>
+                  <p className="profile-upload-subtitle">Arrastra y suelta archivos aquí o haz clic en los botones</p>
+                  <UploadButtons />
+                </div>
               </>
             ) : (
               <div className="profile-empty-state">
@@ -471,14 +476,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
         </div>
       </div>
 
-      {/* ✅ File input oculto — dispara el ShareDesignModal */}
-      <input
-        ref={uploadInputRef}
-        type="file"
-        accept="image/*"
-        style={{ display: 'none' }}
-        onChange={handleFileSelected}
-      />
+      
 
       {/* ✅ ShareDesignModal con los archivos seleccionados */}
       <ShareDesignModal
