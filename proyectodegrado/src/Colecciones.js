@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Search, User, Users, Heart } from 'lucide-react';
-import SearchBar from './Searchbar';  // ← NUEVO
+import { Search, User, Users, Heart, MessageCircle, X } from 'lucide-react';
+import SearchBar from './Searchbar';
 import './Colecciones.css';
 
 // Importar imágenes
@@ -19,12 +19,20 @@ export default function Colecciones({
   onOpenPublicProfile,  
   onOpenDesigners,
   onOpenTrends,
-  isAuthenticated
+  isAuthenticated,
+  userData         // ← necesario para likes/comentarios con id_usuario
 }) {
   const [email, setEmail] = useState('');
   const [galleryItems, setGalleryItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // ── Estados del modal de post ──────────────────────────────
+  const [selectedItem, setSelectedItem]       = useState(null);
+  const [modalLikes, setModalLikes]           = useState({ total: 0, liked: false });
+  const [modalComments, setModalComments]     = useState([]);
+  const [newComment, setNewComment]           = useState('');
+  const [isPostingComment, setIsPostingComment] = useState(false);
 
   // Cargar posts aleatorios al montar el componente
   useEffect(() => {
@@ -71,6 +79,71 @@ export default function Colecciones({
     e.preventDefault();
     console.log('Email suscrito:', email);
     setEmail('');
+  };
+
+  // ── Resolver URL de imagen (igual que UserProfile) ─────────
+  const resolveImageUrl = (item) => {
+    const raw = item.imagen || item.imagen_url || item.image || item.url || '';
+    if (!raw) return null;
+    if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) return raw;
+    return `${API_URL}${raw.startsWith('/') ? '' : '/'}${raw}`;
+  };
+
+  // ── Abrir modal: carga likes y comentarios ─────────────────
+  const handleOpenModal = async (item) => {
+    setSelectedItem(item);
+    setModalComments([]);
+    setModalLikes({ total: item.likes || 0, liked: false });
+    try {
+      const userId = userData?.id_usuario || '';
+      const [likesRes, commentsRes] = await Promise.all([
+        fetch(`${API_URL}/likes/design/${item.id}?id_usuario=${userId}`),
+        fetch(`${API_URL}/comments/design/${item.id}`)
+      ]);
+      const likesData    = await likesRes.json();
+      const commentsData = await commentsRes.json();
+      if (likesData.success)    setModalLikes({ total: likesData.total, liked: likesData.liked });
+      if (commentsData.success) setModalComments(commentsData.comentarios || []);
+    } catch (err) {
+      console.error('Error cargando likes/comentarios:', err);
+    }
+  };
+
+  // ── Toggle like ────────────────────────────────────────────
+  const handleToggleLike = async () => {
+    if (!selectedItem || !userData?.id_usuario) return;
+    try {
+      const res  = await fetch(`${API_URL}/likes/design/${selectedItem.id}/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_usuario: userData.id_usuario })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setModalLikes(prev => ({ liked: data.liked, total: data.liked ? prev.total + 1 : prev.total - 1 }));
+        setGalleryItems(prev => prev.map(d =>
+          d.id === selectedItem.id
+            ? { ...d, likes: data.liked ? (d.likes || 0) + 1 : Math.max((d.likes || 1) - 1, 0) }
+            : d
+        ));
+      }
+    } catch (err) { console.error('Error al dar like:', err); }
+  };
+
+  // ── Enviar comentario ──────────────────────────────────────
+  const handlePostComment = async () => {
+    if (!newComment.trim() || !selectedItem) return;
+    setIsPostingComment(true);
+    try {
+      const res  = await fetch(`${API_URL}/comments/design/${selectedItem.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_usuario: userData?.id_usuario, contenido: newComment })
+      });
+      const data = await res.json();
+      if (data.success) { setModalComments(prev => [data.comentario, ...prev]); setNewComment(''); }
+    } catch (err) { console.error('Error al comentar:', err); }
+    finally { setIsPostingComment(false); }
   };
 
   return (
@@ -208,7 +281,12 @@ export default function Colecciones({
           {!isLoading && !error && galleryItems.length > 0 && (
             <div className="masonry-grid">
               {galleryItems.map((item) => (
-                <div key={item.id} className="masonry-item">
+                <div
+                  key={item.id}
+                  className="masonry-item"
+                  onClick={() => handleOpenModal(item)}
+                  style={{ cursor: 'pointer' }}
+                >
                   {item.category && (
                     <span className="category-badge">{item.category}</span>
                   )}
@@ -233,6 +311,10 @@ export default function Colecciones({
                       <div className="item-info">
                         <h3 className="item-title">{item.title}</h3>
                         <p className="item-author">{item.author}</p>
+                        <div className="item-stats-row">
+                          <span className="item-stat-chip"><Heart size={13} fill="white" />{item.likes || 0}</span>
+                          <span className="item-stat-chip"><MessageCircle size={13} />{item.comments || 0}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -325,6 +407,105 @@ export default function Colecciones({
           to { transform: rotate(360deg); }
         }
       `}</style>
+
+      {/* ── Modal de post ──────────────────────────────────── */}
+      {selectedItem && (
+        <div
+          className="col-modal-backdrop"
+          onClick={() => { setSelectedItem(null); setNewComment(''); }}
+        >
+          <div className="col-modal" onClick={e => e.stopPropagation()}>
+
+            {/* Imagen */}
+            <div className="col-modal-image-wrap">
+              <img
+                src={resolveImageUrl(selectedItem) || selectedItem.image}
+                alt={selectedItem.titulo || selectedItem.title}
+                className="col-modal-image"
+              />
+              <button
+                className="col-modal-close"
+                onClick={() => { setSelectedItem(null); setNewComment(''); }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Info + interacciones */}
+            <div className="col-modal-body">
+              {/* Título y autor */}
+              <div className="col-modal-header">
+                <h3 className="col-modal-title">
+                  {selectedItem.titulo || selectedItem.title}
+                </h3>
+                {selectedItem.author && (
+                  <p className="col-modal-author">por {selectedItem.author}</p>
+                )}
+                {selectedItem.descripcion && selectedItem.descripcion !== 'Compartido desde Éclat' && (
+                  <p className="col-modal-desc">{selectedItem.descripcion}</p>
+                )}
+              </div>
+
+              {/* Likes y contador comentarios */}
+              <div className="col-modal-actions">
+                <button
+                  className={`col-modal-like-btn ${modalLikes.liked ? 'liked' : ''}`}
+                  onClick={handleToggleLike}
+                >
+                  <Heart size={20} fill={modalLikes.liked ? '#ef4444' : 'none'} />
+                  <span>{modalLikes.total}</span>
+                </button>
+                <span className="col-modal-comments-count">
+                  <MessageCircle size={20} />
+                  <span>{modalComments.length}</span>
+                </span>
+              </div>
+
+              {/* Sección de comentarios */}
+              <div className="col-modal-comments">
+                {/* Input nuevo comentario */}
+                <div className="col-modal-comment-input-row">
+                  <input
+                    type="text"
+                    className="col-modal-comment-input"
+                    placeholder="Escribe un comentario..."
+                    value={newComment}
+                    onChange={e => setNewComment(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handlePostComment()}
+                  />
+                  <button
+                    className="col-modal-comment-send"
+                    onClick={handlePostComment}
+                    disabled={isPostingComment || !newComment.trim()}
+                  >
+                    Enviar
+                  </button>
+                </div>
+
+                {/* Lista de comentarios */}
+                {modalComments.length === 0 ? (
+                  <p className="col-modal-no-comments">Sin comentarios aún. ¡Sé el primero!</p>
+                ) : (
+                  modalComments.map(c => (
+                    <div key={c.id_comentario} className="col-modal-comment-item">
+                      <img
+                        src={c.usuario?.foto_perfil || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'}
+                        alt={c.usuario?.nombre_usuario}
+                        className="col-modal-comment-avatar"
+                        onError={e => { e.target.src = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'; }}
+                      />
+                      <div>
+                        <p className="col-modal-comment-user">{c.usuario?.nombre_usuario}</p>
+                        <p className="col-modal-comment-text">{c.contenido}</p>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
