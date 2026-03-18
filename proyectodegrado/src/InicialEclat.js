@@ -20,7 +20,6 @@ export default function InicialEclat({
   onLogout,
   isAuthenticated,
   onNavigateHome,
-  onOpenEditor,
   onOpenProfile,
   onOpenPublicProfile,
   onOpenCollections,

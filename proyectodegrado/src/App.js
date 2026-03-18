@@ -182,31 +182,37 @@ function App() {
       {currentView === 'collections' && (
         <Colecciones
           onNavigateHome={handleBackToHome}
-          onOpenEditor={handleOpenEditor}
+          onOpenWorkspace={handleOpenWorkspace}
           onOpenProfile={handleOpenProfile}
+          onOpenPublicProfile={handleOpenPublicProfile}
           onOpenDesigners={handleOpenDesigners}
           onOpenTrends={handleOpenTrends}
+          userData={userData}
+          isAuthenticated={isAuthenticated}
         />
       )}
 
       {currentView === 'designers' && (
         <Disenadores
           onNavigateHome={handleBackToHome}
-          onOpenEditor={handleOpenEditor}
+          onOpenWorkspace={handleOpenWorkspace}
           onOpenProfile={handleOpenProfile}
           onOpenPublicProfile={handleOpenPublicProfile}
           onOpenCollections={handleOpenCollections}
           onOpenTrends={handleOpenTrends}
+          userData={userData}
         />
       )}
 
       {currentView === 'trends' && (
         <Tendencias
           onNavigateHome={handleBackToHome}
-          onOpenEditor={handleOpenEditor}
+          onOpenWorkspace={handleOpenWorkspace}
           onOpenProfile={handleOpenProfile}
+          onOpenPublicProfile={handleOpenPublicProfile}
           onOpenCollections={handleOpenCollections}
           onOpenDesigners={handleOpenDesigners}
+          userData={userData}
         />
       )}
     </div>
