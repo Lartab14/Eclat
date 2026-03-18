@@ -347,7 +347,6 @@ export default function PublicProfile({ userId, onBack, loggedUserId }) {
                         >
                             {isLoadingFollow ? "..." : isFollowing ? "Siguiendo" : "Seguir"}
                         </button>
-                        <button className="profile-message-button">Mensaje</button>
                     </div>
                 </div>
 
