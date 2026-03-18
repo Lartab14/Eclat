@@ -11,15 +11,16 @@
 .profile-header {
   position: relative;
   width: 100%;
-  max-width: 1400px;  /* ← AGREGADO /
-  margin: 0 auto;     / ← AGREGADO */
+  max-width: 1400px;  
+  margin: 0 auto;     
 }
 
 .profile-cover-container {
   position: relative;
   width: 100%;
-  height: 340px;
+  height: 280px; 
   overflow: hidden;
+  border-radius: 0 0 24px 24px; 
 }
 
 .profile-cover-container:hover .profile-change-cover-button {
@@ -30,6 +31,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center; 
   transition: filter 0.3s;
 }
 
