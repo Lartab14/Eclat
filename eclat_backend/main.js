@@ -11,18 +11,14 @@ const port = process.env.PORT || 3001;
 app.use(cors({
   origin: [
     'http://localhost:3000',
+    'https://frontend-flax-nine-37.vercel.app',
     'https://frontend-git-main-lauras-projects-3e7a1422.vercel.app',
     process.env.FRONTEND_URL
-  ],
+  ].filter(Boolean),
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
-app.use(
-  "/uploads",
- express.static(path.join(__dirname, "../uploads"))
-);
 
 // Importar las rutas
 const routes = require('./src/routes/index');
