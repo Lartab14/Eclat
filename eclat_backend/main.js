@@ -12,7 +12,7 @@ app.use(cors({
   origin: [
     'http://localhost:3000',
     'https://frontend-flax-nine-37.vercel.app',
-    'https://eclatdesign.vercel.app/',
+    'https://eclatdesign.vercel.app',
     process.env.FRONTEND_URL
   ].filter(Boolean),
   credentials: true,
