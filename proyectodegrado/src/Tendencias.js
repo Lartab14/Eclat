@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Bell, User, Sparkles, Layers, Eye, Download, X, RotateCcw, ZoomIn, ZoomOut, Info } from 'lucide-react';
+import { Search, User, Sparkles, Layers, Eye, Download, X, RotateCcw, ZoomIn, ZoomOut, Info } from 'lucide-react';
 import SearchBar from './Searchbar';
 import './Tendencias.css';
 
@@ -28,32 +28,25 @@ import Texture14 from './img/Text14.jpg';
 import Texture15 from './img/Text15.jpg';
 import Texture16 from './img/Text16.jpg';
 
-// ─── Modelos 3D (.glb) ────────────────────────────────────────────────────────
-// Los modelos van en public/models/ — NO en src/models/
-// Webpack no procesa .glb; se sirven como archivos estáticos desde public/.
-// Pasos: 1) Pon tu archivo en public/models/Seda.glb
-//         2) Agrega su nombre en MODEL_FILES
-//         3) ¡Listo! No necesitas imports ni craco.
-// ─────────────────────────────────────────────────────────────────────────────
 const MODEL_BASE = process.env.PUBLIC_URL + '/models/';
 
 const MODEL_FILES = {
     1: 'Seda.glb',
-    // 2:  'Terciopelo.glb',
-    // 3:  'Metal.glb',
-    // 4:  'Cuero.glb',
-    // 5:  'Pelo.glb',
-    // 6:  'Algodon.glb',
-    // 7:  'Lino.glb',
-    // 8:  'CueroColor.glb',
-    // 9:  'Organza.glb',
-    // 10: 'Lana.glb',
-    // 11: 'Jersey.glb',
-    // 12: 'Patron.glb',
-    // 13: 'TejidoMulticolor.glb',
-    // 14: 'Denim.glb',
-    // 15: 'Corrugado.glb',
-    // 16: 'Malla.glb',
+    2: 'Terciopelo.glb',
+    3: 'Metal.glb',
+    4: 'Cuero.glb',
+    5: 'Pelo.glb',
+    6: 'Algodon.glb',
+    7: 'Lino.glb',
+    8: 'CueroColor.glb',
+    9: 'Organza.glb',
+    10: 'Lana.glb',
+    11: 'Jersey.glb',
+    12: 'Patron.glb',
+    13: 'TejidoMulticolor.glb',
+    14: 'Denim.glb',
+    15: 'Corrugado.glb',
+    16: 'Malla.glb',
 };
 
 // ─── Carga scripts de Three.js + GLTFLoader desde CDN ────────────────────────
@@ -440,7 +433,7 @@ function FabricModal({ fabric, onClose }) {
 // ─── Componente principal ──────────────────────────────────────────────────────
 export default function Tendencias({
     onNavigateHome,
-    onOpenEditor,
+    onOpenWorkspace,
     onOpenProfile,
     onOpenPublicProfile,
     onOpenCollections,
@@ -611,12 +604,7 @@ export default function Tendencias({
 
                     <div className="header-actions">
                         <SearchBar onOpenPublicProfile={onOpenPublicProfile} />
-                        <button className="upload-button" onClick={onOpenEditor}>
-                            Crear diseño
-                        </button>
-                        <button className="icon-button">
-                            <Bell />
-                        </button>
+                        <button className="upload-button" onClick={onOpenWorkspace}>Crear diseño</button>
                         <button className="icon-button" onClick={onOpenProfile}>
                             <User />
                         </button>
