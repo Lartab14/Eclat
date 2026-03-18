@@ -4,6 +4,7 @@ import { Search, User, Sparkles, Layers, Eye, Download, X, RotateCcw, ZoomIn, Zo
 import SearchBar from './Searchbar'; // ← NUEVO
 import './Tendencias.css';
 
+
 // Importar imágenes
 import LogoEclat from './img/LogoEclat.png';
 import Eclat from './img/Eclat.png';
@@ -403,6 +404,7 @@ export default function Tendencias({
     onNavigateHome,
     onOpenEditor,
     onOpenProfile,
+    onOpenWorkspace,
     onOpenPublicProfile, // ← NUEVO
     onOpenCollections,
     onOpenDesigners

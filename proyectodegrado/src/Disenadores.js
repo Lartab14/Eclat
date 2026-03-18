@@ -13,6 +13,7 @@ export default function Disenadores({
   onNavigateHome,
   onOpenEditor,
   onOpenProfile,
+  onOpenWorkspace,
   onOpenPublicProfile,
   onOpenCollections,
   onOpenTrends

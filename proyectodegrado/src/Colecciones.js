@@ -18,6 +18,7 @@ export default function Colecciones({
   onOpenProfile,
   onOpenPublicProfile,  
   onOpenDesigners,
+   onOpenWorkspace,
   onOpenTrends,
   isAuthenticated,
   userData         // ← necesario para likes/comentarios con id_usuario
