@@ -40,7 +40,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
 
   const coverInputRef = useRef(null);
   const avatarInputRef = useRef(null);
-  // ✅ File input oculto para seleccionar archivo antes de abrir el modal
+  // File input oculto para seleccionar archivo antes de abrir el modal
   const uploadInputRef = useRef(null);
 
   const generateUsername = (name) => {
@@ -175,7 +175,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     }
   };
 
-  // ✅ Al seleccionar archivo, guardar y abrir el ShareDesignModal
+  // Al seleccionar archivo, guardar y abrir el ShareDesignModal
   const handleFileSelected = (e) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -185,7 +185,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     e.target.value = ''; // limpiar para permitir re-selección
   };
 
-  // ✅ Callback cuando el post se crea exitosamente
+  // Callback cuando el post se crea exitosamente
   const handlePostCreated = async () => {
     setPendingFiles([]);
     await cargarDiseños();
@@ -273,7 +273,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     return `${API_URL}${raw.startsWith('/') ? '' : '/'}${raw}`;
   };
 
-  // ✅ Botones de upload reutilizables
+  // Botones de upload reutilizables
   const UploadButtons = () => (
     <div className="profile-upload-buttons">
       <button className="profile-upload-btn"  onClick={() => setShareModalOpen(true)}>
@@ -486,7 +486,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
         </div>
       </div>
 
-      {/* ✅ File input oculto — dispara el ShareDesignModal */}
+      {/* File input oculto — dispara el ShareDesignModal */}
       <input
         ref={uploadInputRef}
         type="file"
@@ -495,7 +495,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
         onChange={handleFileSelected}
       />
 
-      {/* ✅ ShareDesignModal con los archivos seleccionados */}
+      {/* ShareDesignModal con los archivos seleccionados */}
       <ShareDesignModal
         isOpen={shareModalOpen}
         onClose={() => { setShareModalOpen(false); setPendingFiles([]); }}

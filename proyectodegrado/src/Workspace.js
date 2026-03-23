@@ -103,7 +103,7 @@ export default function Workspace({ onBack, userData, draftDesign }) {
             const rawUrl = draftDesign.imagen || draftDesign.imagen_url || draftDesign.image || draftDesign.url || '';
             const rawDesc = draftDesign.descripcion || '';
 
-            // ✅ Restaurar capas desde JSON inline (LAYERS:...)
+            // Restaurar capas desde JSON inline (LAYERS:...)
             const layersJson = rawDesc.startsWith('LAYERS:') ? rawDesc.replace('LAYERS:', '').trim() : null;
 
             if (layersJson) {
@@ -587,7 +587,7 @@ export default function Workspace({ onBack, userData, draftDesign }) {
             const canvas = compositeCanvasRef.current;
             const ctx = canvas.getContext('2d');
 
-            // ✅ FIX PIXELADO: dibujar 1:1 sin escalar
+            // FIX PIXELADO: dibujar 1:1 sin escalar
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -600,7 +600,7 @@ export default function Workspace({ onBack, userData, draftDesign }) {
             });
             ctx.globalAlpha = 1;
 
-            // ✅ FIX CAPAS: subir cada capa como imagen PNG individual a Cloudinary
+            // FIX CAPAS: subir cada capa como imagen PNG individual a Cloudinary
             // Así la descripcion solo guarda URLs (texto corto), no base64 pesado
             const layersSnapshot = await Promise.all(
                 layersRef.current.map(async (layer) => {

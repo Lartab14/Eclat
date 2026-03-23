@@ -77,7 +77,6 @@ function loadThreeWithGLTF() {
 }
 
 // ─── Viewer 3D — soporta .glb propio O esfera generada como fallback ─────────
-//   Props:
 //     modelUrl   — ruta al .glb  (import MiModelo from './models/tela.glb')
 //     textureUrl — imagen 2D de la textura (fallback si no hay modelo)
 //     size       — 'card' | 'modal'

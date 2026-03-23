@@ -27,7 +27,7 @@ function App() {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [editingDesign, setEditingDesign] = useState(null);
 
-  // ✅ Al cargar la app, recuperar la sesión guardada
+  // Al cargar la app, recuperar la sesión guardada
   useEffect(() => {
     const token = localStorage.getItem('authToken');
     const savedUser = localStorage.getItem('userData');
@@ -44,7 +44,7 @@ function App() {
     }
   }, []);
 
-  // ✅ Refrescar stats del usuario desde la BD
+  // Refrescar stats del usuario desde la BD
   const refrescarStats = async (userId) => {
     if (!userId) return;
     try {
@@ -109,7 +109,7 @@ function App() {
     setCurrentView('profile');
   };
 
-  // ✅ Al abrir el perfil propio, refrescar stats
+  // Al abrir el perfil propio, refrescar stats
   const handleOpenProfile = () => {
     if (userData?.id_usuario) refrescarStats(userData.id_usuario);
     setCurrentView('profile');
