@@ -12,8 +12,8 @@ import diseño1 from './img/Boceto.png';
 import diseño2 from './img/Boceto2.png';
 import diseño3 from './img/Boceto3.png';
 import diseño4 from './img/AlejaDiseño1.png';
-import diseño4 from './img/AlejaDiseño2.png';
-import diseño4 from './img/AlejaDiseño3.png';
+import diseño5 from './img/AlejaDiseño2.png';
+import diseño6 from './img/AlejaDiseño3.png';
 import comparte1 from './img/vestido.jpg';
 import comparte2 from './img/stwear.jpg';
 
