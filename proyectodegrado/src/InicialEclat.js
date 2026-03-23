@@ -69,6 +69,9 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
     { id: 1, image: diseño1, className: 'design-card-blue' },
     { id: 2, image: diseño2, className: 'design-card-yellow' },
     { id: 3, image: diseño3, className: 'design-card-dark' }
+    { id: 3, image: diseño4, className: 'design-card-dark' }
+    { id: 3, image: diseño5, className: 'design-card-dark' }
+    { id: 3, image: diseño6, className: 'design-card-dark' }
   ];
 
   const colors = [
