@@ -630,7 +630,7 @@ export default function Tendencias({
 
                 {/* Texto inferior izquierda */}
                 <div className="hero-text-overlay">
-                    <span className="hero-text-eyebrow">Temporada 2025</span>
+                    <span className="hero-text-eyebrow">Temporada 2026</span>
                     <h2 className="hero-text-title">
                         Descubre las texturas que <span className="hero-text-accent">definen la moda</span> de hoy
                     </h2>
