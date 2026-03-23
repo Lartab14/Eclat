@@ -11,10 +11,12 @@ import LogoEclat from './img/LogoEclat.png';
 import diseño1 from './img/Boceto.png';
 import diseño2 from './img/Boceto2.png';
 import diseño3 from './img/Boceto3.png';
+import diseño4 from './img/AlejaDiseño1.png';
+import diseño4 from './img/AlejaDiseño2.png';
+import diseño4 from './img/AlejaDiseño3.png';
 import comparte1 from './img/vestido.jpg';
 import comparte2 from './img/stwear.jpg';
 
-// ❌ ELIMINADAS: importaciones de imágenes estáticas de diseños destacados
 
 export default function InicialEclat({
   onLogout,
@@ -50,7 +52,6 @@ export default function InicialEclat({
   const searchInputRef = React.useRef(null);
   const [shareModalOpen, setShareModalOpen] = useState(false);
 
-  // ✅ NUEVO: Estados para diseños destacados dinámicos
   const [featuredDesigns, setFeaturedDesigns] = useState([]);
   const [isLoadingFeatured, setIsLoadingFeatured] = useState(true);
   const [errorFeatured, setErrorFeatured] = useState(null);
@@ -90,7 +91,6 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
     return () => clearInterval(timer);
   }, []);
 
-  // ✅ NUEVO: Cargar diseños destacados desde la API al montar
   useEffect(() => {
     const cargarDestacados = async () => {
       setIsLoadingFeatured(true);
@@ -769,7 +769,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
         />
       </section>
 
-      {/* ✅ Sección Diseños Destacados — ahora con datos dinámicos de la API */}
+      {/* Sección Diseños Destacados — ahora con datos dinámicos de la API */}
       <section className="featured-section">
         <div className="section-container">
           <div className="section-header">
