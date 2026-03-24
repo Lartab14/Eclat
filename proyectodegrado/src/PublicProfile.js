@@ -122,7 +122,6 @@ export default function PublicProfile({ userId, onBack, loggedUserId }) {
         setIsLoadingFollow(true);
         try {
             if (isFollowing) {
-                //rutas SIN /api
                 const response = await fetch(`${API_URL}/follows/followers/${userId}`);
                 const data = await response.json();
                 const followRecord = Array.isArray(data) && data.find(f => f.id_usuario_seguidor === loggedUserId);

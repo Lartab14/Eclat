@@ -396,34 +396,7 @@ export default function Login({ onLoginSuccess }) {
                         </button>
                     </form>
                 )}
-
-                {/* Divider - Opcional para OAuth */}
-                {/* 
-                <div className="divider">
-                    <span>O continúa con</span>
-                </div>
-
-                <div className="social-login">
-                    <button 
-                        className="social-button google"
-                        onClick={handleGoogleLogin}
-                        type="button"
-                        disabled={isLoading}
-                    >
-                        <img src="/google-icon.svg" alt="Google" />
-                        Google
-                    </button>
-                    <button 
-                        className="social-button github"
-                        onClick={handleGitHubLogin}
-                        type="button"
-                        disabled={isLoading}
-                    >
-                        <img src="/github-icon.svg" alt="GitHub" />
-                        GitHub
-                    </button>
-                </div>
-                */}
+                
 
             </div>
         </div>
