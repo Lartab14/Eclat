@@ -23,9 +23,9 @@ body {
     background: white;
 }
 
-/* ============================================ */
+
 /* HEADER */
-/* ============================================ */
+
 
 .trends-header {
     background-color: white;
@@ -144,9 +144,9 @@ body {
     transform: scale(1.05);
 }
 
-/* ============================================ */
+
 /* HERO SECTION CON VIDEO                       */
-/* ============================================ */
+
 
 .trends-hero-section {
     position: relative;
@@ -339,9 +339,9 @@ body {
     opacity: 0.9;
 }
 
-/* ============================================ */
+
 /* TEXTURE LIBRARY SECTION                      */
-/* ============================================ */
+
 
 .texture-library-section {
     background: linear-gradient(to bottom, #ffffff 0%, #faf5ff 100%);
@@ -600,9 +600,9 @@ body {
 .texture-item:nth-child(5n) .texture-placeholder { aspect-ratio: 2/3; }
 .texture-item:nth-child(7n) .texture-placeholder { aspect-ratio: 1/1; }
 
-/* ============================================ */
+
 /* MODAL DE TELA 3D                             */
-/* ============================================ */
+
 
 .fabric-modal-backdrop {
     position: fixed;
@@ -786,9 +786,9 @@ body {
     font-weight: 600;
 }
 
-/* ============================================ */
+
 /* INSPIRATION SECTION                          */
-/* ============================================ */
+
 
 .inspiration-section {
     background: linear-gradient(135deg, #f5f0ff 0%, #ede9fe 60%, #e0e7ff 100%);
@@ -991,9 +991,9 @@ body {
 
 .inspiration-cta-btn:hover .inspiration-cta-arrow { transform: translateX(4px); }
 
-/* ============================================ */
-/* FOOTER - MODERNIZADO (oscuro)               */
-/* ============================================ */
+
+/* FOOTER (oscuro)               */
+
 
 .footer {
     background: linear-gradient(160deg, #1a0f2e 0%, #0f0a1a 50%, #1a0f2e 100%) !important;
@@ -1139,9 +1139,9 @@ body {
     font-size: 0.78rem;
 }
 
-/* ============================================ */
+
 /* RESPONSIVE */
-/* ============================================ */
+
 
 @media (max-width: 1200px) {
     .textures-masonry {

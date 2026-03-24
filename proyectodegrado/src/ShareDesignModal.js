@@ -1,4 +1,3 @@
-// ShareDesignModal.js - Modal moderno para subir diseños/posts
 import React, { useState, useRef } from 'react';
 import { X, Upload, Image as ImageIcon, FileText, Lock, Globe } from 'lucide-react';
 import './ShareDesignModal.css';
@@ -79,7 +78,7 @@ export default function ShareDesignModal({ isOpen, onClose, userData, onPostCrea
             if (!uploadRes.ok) throw new Error('Error al subir la imagen');
             const uploadData = await uploadRes.json();
 
-            // ✅ Cloudinary devuelve URL completa directamente
+            // Cloudinary devuelve URL completa directamente
             const imageUrl = uploadData.imageUrl;
 
             // 2. Crear diseño — rutas SIN /api ya que API_URL lo incluye

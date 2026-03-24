@@ -1,6 +1,5 @@
 const likePostService = require("../services/likePostService.js");
 
-// 👇 NUEVOS para diseños
 async function toggleLikeDiseño(req, res) {
   try {
     const { id_usuario } = req.body;

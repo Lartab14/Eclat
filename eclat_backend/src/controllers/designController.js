@@ -15,13 +15,13 @@ module.exports = {
         console.log(`   Diseño: ${design.titulo || 'Sin título'}`);
 
         return {
-          id: design.id_diseño,                          // ✅ era id_design (typo)
+          id: design.id_diseño,                          
           image: design.archivos[0]?.ruta_archivo,
           title: design.titulo || 'Sin título',
           author: '@' + design.usuario.nombre_usuario.toLowerCase().replace(/\s+/g, ''),
           category: design.visibilidad === 'destacado' ? 'Destacado' :
             (design.likes?.length > 50 ? 'Popular' : null),
-          likes: design.likes?.length || 0,              // ✅ ahora viene directo del diseño
+          likes: design.likes?.length || 0,              
           views: Math.floor(Math.random() * 3000) + 500
         };
       });
@@ -41,7 +41,7 @@ module.exports = {
     }
   },
 
-  // ========== MÉTODOS ORIGINALES (CRUD básico) ==========
+  // MÉTODOS ORIGINALES (CRUD básico) 
 
   async getAllDesigns(req, res) {
     try {
@@ -88,7 +88,7 @@ module.exports = {
     }
   },
 
-  // ========== NUEVOS MÉTODOS PARA GESTIÓN DE IMÁGENES ==========
+//MÉTODOS PARA GESTIÓN DE IMÁGENES
 
   async crearDiseñoConArchivo(req, res) {
     try {
@@ -129,8 +129,8 @@ module.exports = {
         where: { id_diseño: diseño.id_diseño },
         include: {
           archivos: true,
-          likes: true,       // ✅ incluir likes
-          comentarios: true, // ✅ incluir comentarios
+          likes: true,      
+          comentarios: true, 
           usuario: {
             select: { id_usuario: true, nombre_usuario: true, foto_perfil: true }
           }
@@ -149,7 +149,7 @@ module.exports = {
     }
   },
 
-  // Obtener diseños del usuario — ✅ CAMBIO PRINCIPAL AQUÍ
+  // Obtener diseños del usuario 
   async obtenerDiseñosUsuario(req, res) {
     try {
       const { id_usuario } = req.params;
@@ -164,8 +164,8 @@ module.exports = {
         where: whereClause,
         include: {
           archivos: true,
-          likes: true,        // ✅ directo en diseño, no via posts
-          comentarios: true,  // ✅ directo en diseño, no via posts
+          likes: true,        
+          comentarios: true,  
           usuario: {
             select: { id_usuario: true, nombre_usuario: true, foto_perfil: true }
           }
@@ -213,7 +213,7 @@ module.exports = {
         return res.status(403).json({ error: "No tienes permiso para eliminar este diseño" });
       }
 
-      // ✅ Eliminar likes y comentarios del diseño antes de borrarlo
+      // Eliminar likes y comentarios del diseño antes de borrarlo
       await prisma.like_post.deleteMany({ where: { id_diseño: Number(id_diseño) } });
       await prisma.comentario.deleteMany({ where: { id_diseño: Number(id_diseño) } });
       await prisma.post.deleteMany({ where: { id_diseño: Number(id_diseño) } });
@@ -305,8 +305,8 @@ module.exports = {
         where: { id_diseño: Number(id) },
         include: {
           archivos: true,
-          likes: true,        // ✅ incluir likes
-          comentarios: true,  // ✅ incluir comentarios
+          likes: true,        
+          comentarios: true,  
           usuario: {
             select: { id_usuario: true, nombre_usuario: true, foto_perfil: true }
           }

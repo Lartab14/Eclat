@@ -1139,9 +1139,7 @@
   margin: 0;
 }
 
-/* ========================================
-   SECCIÓN COMPARTE TUS DISEÑOS - MODERNA
-   ======================================== */
+/* SECCIÓN COMPARTE TUS DISEÑOS  */
 
 .share-section-modern {
   padding: 4rem 0;
@@ -1590,9 +1588,7 @@
   margin-left: auto;
 }
 
-/* ========================================
-   SECCIÓN INSPIRACIÓN - MODERNIZADA
-   ======================================== */
+/* SECCIÓN INSPIRACIÓN - MODERNIZADA*/
 
 .inspiration-section {
   background: linear-gradient(135deg, #f5f0ff 0%, #ede9fe 60%, #e0e7ff 100%);
@@ -2293,10 +2289,9 @@
     gap: 1.5rem;
   }
 }
-/* ============================================================ */
+
 /*  MODAL DE DISEÑO DESTACADO — InicialEclat                   */
-/*  (Mismas clases que Colecciones para consistencia)          */
-/* ============================================================ */
+
 
 .col-modal-backdrop {
   position: fixed;

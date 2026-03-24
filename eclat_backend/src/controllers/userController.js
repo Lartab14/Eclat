@@ -158,7 +158,7 @@ const obtenerUsuariosAleatorios = async (req, res) => {
   try {
     const { limit = 12 } = req.query;
 
-    // ✅ Usar obtenerUsuariosConStats para traer seguidores, diseños y likes reales
+    // Usar obtenerUsuariosConStats para traer seguidores, diseños y likes reales
     const todosLosUsuarios = await usuarioService.obtenerUsuariosConStats();
     const diseñadores = todosLosUsuarios.filter(u => u.rol === 'diseñador');
 
@@ -190,7 +190,6 @@ const obtenerUsuariosAleatorios = async (req, res) => {
         foto_perfil: usuario.foto_perfil || null,
         foto_portada: infoAdicional.foto_portada || null,
         badge: infoAdicional.destacado ? 'Destacado' : null,
-        // ✅ Stats reales desde la BD
         followers: formatNumber(stats.followers),
         projects: formatNumber(stats.posts),
         likes: formatNumber(stats.likes),

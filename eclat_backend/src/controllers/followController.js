@@ -6,7 +6,7 @@ async function followUser(req, res) {
     const follow = await followService.followUser(req.body);
     res.json(follow);
   } catch (error) {
-    // ✅ Devolver 409 Conflict para duplicados en lugar de 500
+    // Devolver 409 Conflict para duplicados en lugar de 500
     if (
       error.message === "Ya sigues a este usuario" ||
       error.message === "Un usuario no puede seguirse a sí mismo"

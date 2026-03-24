@@ -1,6 +1,6 @@
 const commentService = require("../services/commentService.js");
 
-// 👇 NUEVOS para diseños
+//para diseños
 async function createCommentDiseño(req, res) {
   try {
     const { id_usuario, contenido } = req.body;

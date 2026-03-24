@@ -1,5 +1,3 @@
-// designService.js - FRONTEND (React)
-// Este archivo va en: frontend/src/services/designService.js
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 // Crear un nuevo diseño con archivo (para perfil de usuario)

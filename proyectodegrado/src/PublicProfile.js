@@ -80,7 +80,7 @@ export default function PublicProfile({ userId, onBack, loggedUserId }) {
         fetchProfile();
     }, [userId]);
 
-    // Cargar diseños públicos — ✅ rutas SIN /api
+    // Cargar diseños públicos 
     useEffect(() => {
         if (!userId) return;
         const cargarDiseños = async () => {
@@ -98,7 +98,7 @@ export default function PublicProfile({ userId, onBack, loggedUserId }) {
         cargarDiseños();
     }, [userId]);
 
-    // Verificar si ya sigue — ✅ rutas SIN /api
+    // Verificar si ya sigue 
     useEffect(() => {
         if (!userId || !loggedUserId) return;
         const checkIfFollowing = async () => {
@@ -122,7 +122,7 @@ export default function PublicProfile({ userId, onBack, loggedUserId }) {
         setIsLoadingFollow(true);
         try {
             if (isFollowing) {
-                // ✅ rutas SIN /api
+                //rutas SIN /api
                 const response = await fetch(`${API_URL}/follows/followers/${userId}`);
                 const data = await response.json();
                 const followRecord = Array.isArray(data) && data.find(f => f.id_usuario_seguidor === loggedUserId);
@@ -156,7 +156,7 @@ export default function PublicProfile({ userId, onBack, loggedUserId }) {
         return `${API_URL}${raw.startsWith('/') ? '' : '/'}${raw}`;
     };
 
-    // Abrir modal — ✅ rutas SIN /api
+    // Abrir modal 
     const handleOpenDesignModal = async (design) => {
         setSelectedDesign(design);
         setModalComments([]);
@@ -178,7 +178,7 @@ export default function PublicProfile({ userId, onBack, loggedUserId }) {
         }
     };
 
-    // Toggle like — ✅ rutas SIN /api
+    // Toggle like 
     const handleToggleLike = async () => {
         if (!loggedUserId) {
             alert('Debes iniciar sesión para dar like');
@@ -207,7 +207,7 @@ export default function PublicProfile({ userId, onBack, loggedUserId }) {
         }
     };
 
-    // Publicar comentario — ✅ rutas SIN /api
+    // Publicar comentario 
     const handlePostComment = async () => {
         if (!newComment.trim() || !loggedUserId) return;
         setIsPostingComment(true);
