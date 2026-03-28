@@ -18,7 +18,6 @@ export default function Login({ onLoginSuccess }) {
         password: '',
         rol: 'espectador',
         rememberMe: false,
-        acceptTerms: false
     });
 
     const handleInputChange = (e) => {
@@ -78,11 +77,6 @@ export default function Login({ onLoginSuccess }) {
     const handleRegister = async (e) => {
         e.preventDefault();
         setError('');
-
-        if (!formData.acceptTerms) {
-            setError('Debes aceptar los términos y condiciones');
-            return;
-        }
 
         if (!formData.name || formData.name.trim() === '') {
             setError('Por favor ingresa tu nombre completo');
@@ -368,23 +362,6 @@ export default function Login({ onLoginSuccess }) {
                                 <option value="espectador">Espectador - Explorar diseños</option>
                                 <option value="diseñador">Diseñador - Crear y compartir</option>
                             </select>
-                        </div>
-
-                        <div className="form-group">
-                            <label className="checkbox-label terms">
-                                <input
-                                    type="checkbox"
-                                    name="acceptTerms"
-                                    checked={formData.acceptTerms}
-                                    onChange={handleInputChange}
-                                    disabled={isLoading}
-                                />
-                                <span>
-                                    Acepto los{' '}
-                                    <a href="#" className="link">términos y condiciones</a> y la{' '}
-                                    <a href="#" className="link">política de privacidad</a>
-                                </span>
-                            </label>
                         </div>
 
                         <button 
