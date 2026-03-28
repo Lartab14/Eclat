@@ -1,4 +1,4 @@
-// FollowingModal.js - Modal para mostrar usuarios que sigues
+// Followingmodal.js - Modal para mostrar usuarios que sigues
 import React, { useState, useEffect } from 'react';
 import { X, Users, Search } from 'lucide-react';
 import './Followingmodal.css';

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowLeft, Settings, MapPin, Calendar, Users, Heart, MessageCircle, Camera, Edit2, Upload, Plus, Image, FileText, X, Save, Trash2, LogOut } from 'lucide-react';
 import './UserProfile.css';
 import ShareDesignModal from './ShareDesignModal';
-import FollowingModal from './Followingmodal';
+import Followingmodal from './Followingmodal';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 export default function UserProfile({ onBack, onLogout, userData: userDataProp, onOpenWorkspace, onUpdateProfile }) {
@@ -31,7 +31,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [pendingFiles, setPendingFiles] = useState([]);
   // Estado del modal de siguiendo
-  const [followingModalOpen, setFollowingModalOpen] = useState(false);
+  const [followingmodalOpen, setFollowingmodalOpen] = useState(false);
   // Modal de diseño propio (likes/comentarios)
   const [selectedDesign, setSelectedDesign] = useState(null);
   const [modalLikes, setModalLikes] = useState({ total: 0, liked: false });
@@ -397,7 +397,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
           <div className="profile-stats-container">
             <div
               className="profile-stat-item profile-stat-clickable"
-              onClick={() => setFollowingModalOpen(true)}
+              onClick={() => setFollowingmodalOpen(true)}
               style={{ cursor: 'pointer' }}
               title="Ver lista de usuarios que sigues"
             >
@@ -635,9 +635,9 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                 </button>
               </div>
               {/* Modal de siguiendo */}
-              <FollowingModal
-                isOpen={followingModalOpen}
-                onClose={() => setFollowingModalOpen(false)}
+              <Followingmodal
+                isOpen={followingmodalOpen}
+                onClose={() => setFollowingmodalOpen(false)}
                 userId={userDataProp?.id_usuario}
                 onOpenPublicProfile={onOpenPublicProfile}
               />
