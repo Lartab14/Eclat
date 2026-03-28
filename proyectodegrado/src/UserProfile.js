@@ -4,8 +4,7 @@ import './UserProfile.css';
 import ShareDesignModal from './ShareDesignModal';
 import Followingmodal from './Followingmodal';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
-
-export default function UserProfile({ onBack, onLogout, userData: userDataProp, onOpenWorkspace, onUpdateProfile }) {
+export default function UserProfile({ onBack, onLogout, userData: userDataProp, onOpenWorkspace, onUpdateProfile, onOpenPublicProfile }) {
   const [activeTab, setActiveTab] = useState('public');
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
