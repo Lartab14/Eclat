@@ -1054,25 +1054,3 @@
   opacity: 1;
   transform: translateY(0);
 }
-
-/* Stat clickeable */
-.profile-stat-clickable {
-  transition: all 0.2s;
-  border-radius: 12px;
-  padding: 0.5rem;
-  margin: -0.5rem;
-}
-
-.profile-stat-clickable:hover {
-  background: #f3f4f6;
-  transform: translateY(-2px);
-}
-
-.profile-stat-clickable:hover .profile-stat-number {
-  color: #6366f1;
-}
-
-.profile-stat-clickable:active {
-  transform: translateY(0);
-  background: #e5e7eb;
-}
