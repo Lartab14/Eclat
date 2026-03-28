@@ -38,6 +38,10 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
   const [newComment, setNewComment] = useState('');
   const [isPostingComment, setIsPostingComment] = useState(false);
 
+  // ── Modal de confirmación de borrado ──────────────────────
+  const [deleteModal, setDeleteModal] = useState({ open: false, design: null });
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const coverInputRef = useRef(null);
   const avatarInputRef = useRef(null);
   // File input oculto para seleccionar archivo antes de abrir el modal
@@ -192,20 +196,36 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     await cargarStats();
   };
 
-  const handleDeleteDesign = async (designId) => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar este diseño?')) return;
+  // ── Abrir modal de confirmación de borrado ────────────────
+  const handleAskDelete = (e, design) => {
+    e.stopPropagation();
+    setDeleteModal({ open: true, design });
+  };
+
+  // ── Confirmar borrado: BD + Cloudinary ────────────────────
+  const handleConfirmDelete = async () => {
+    const design = deleteModal.design;
+    if (!design) return;
+    setIsDeleting(true);
     try {
-      const response = await fetch(`${API_URL}/designs/remove/${designId}`, {
+      // Incluir imageUrl para que el backend pueda borrar de Cloudinary
+      const imageUrl = design.imagen || design.imagen_url || design.image || design.url || null;
+      const response = await fetch(`${API_URL}/designs/remove/${design.id}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id_usuario: userDataProp.id_usuario })
+        body: JSON.stringify({
+          id_usuario: userDataProp.id_usuario,
+          imageUrl,          // ← el backend usa esto para borrar de Cloudinary
+        })
       });
       if (!response.ok) throw new Error('Error al eliminar el diseño');
+      setDeleteModal({ open: false, design: null });
       await cargarDiseños();
       await cargarStats();
-      alert('Diseño eliminado exitosamente ✅');
     } catch (error) {
       alert('Error al eliminar el diseño: ' + error.message);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -276,7 +296,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
   // Botones de upload reutilizables
   const UploadButtons = () => (
     <div className="profile-upload-buttons">
-      <button className="profile-upload-btn"  onClick={() => setShareModalOpen(true)}>
+      <button className="profile-upload-btn" onClick={() => setShareModalOpen(true)}>
         <Image size={20} />Subir Archivos
       </button>
       <button className="profile-upload-btn profile-upload-btn-secondary" onClick={handleCreateCanvas}>
@@ -445,7 +465,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                           {isPrivate && <div className="profile-design-edit-badge"><Edit2 size={14} /><span>Editar en Workspace</span></div>}
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
                             <span className="profile-design-status">{design.status || (design.visibilidad === 'privado' ? 'Privado' : 'Público')}</span>
-                            <button onClick={(e) => { e.stopPropagation(); handleDeleteDesign(design.id); }}
+                            <button onClick={(e) => handleAskDelete(e, design)}
                               style={{ background: 'rgba(239,68,68,0.9)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'white' }}>
                               <Trash2 size={18} />
                             </button>
@@ -461,7 +481,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                   })}
                 </div>
 
-                
+
                 <div className="profile-upload-section">
                   <div className="profile-upload-icon"><Upload size={32} /></div>
                   <h3 className="profile-upload-title">Sube tus diseños</h3>
@@ -503,6 +523,61 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
         initialFiles={pendingFiles}
         onPostCreated={handlePostCreated}
       />
+
+      {/* ── Modal de confirmación de borrado ─────────────── */}
+      {deleteModal.open && (
+        <div
+          className="delete-modal-backdrop"
+          onClick={() => !isDeleting && setDeleteModal({ open: false, design: null })}
+        >
+          <div className="delete-modal" onClick={e => e.stopPropagation()}>
+            {/* Icono */}
+            <div className="delete-modal-icon">
+              <Trash2 size={28} />
+            </div>
+
+            {/* Texto */}
+            <h3 className="delete-modal-title">¿Eliminar diseño?</h3>
+            <p className="delete-modal-desc">
+              Se eliminará <strong>{deleteModal.design?.titulo || 'este diseño'}</strong> de forma permanente,
+              incluyendo su imagen en la nube. Esta acción no se puede deshacer.
+            </p>
+
+            {/* Preview de la imagen */}
+            {(deleteModal.design?.imagen || deleteModal.design?.imagen_url || deleteModal.design?.image) && (
+              <div className="delete-modal-preview">
+                <img
+                  src={resolveImageUrl(deleteModal.design)}
+                  alt={deleteModal.design?.titulo || 'Diseño'}
+                  className="delete-modal-thumb"
+                />
+              </div>
+            )}
+
+            {/* Acciones */}
+            <div className="delete-modal-actions">
+              <button
+                className="delete-modal-btn-cancel"
+                onClick={() => setDeleteModal({ open: false, design: null })}
+                disabled={isDeleting}
+              >
+                Cancelar
+              </button>
+              <button
+                className="delete-modal-btn-confirm"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? (
+                  <><div className="delete-modal-spinner" /> Eliminando...</>
+                ) : (
+                  <><Trash2 size={16} /> Eliminar</>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de diseño propio (likes y comentarios) */}
       {selectedDesign && (
