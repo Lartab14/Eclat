@@ -1,11 +1,11 @@
 // FollowingModal.js - Modal para mostrar usuarios que sigues
 import React, { useState, useEffect } from 'react';
 import { X, Users, Search } from 'lucide-react';
-import './FollowingModal.css';
+import './Followingmodal.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
-export default function FollowingModal({ isOpen, onClose, userId, onOpenPublicProfile }) {
+export default function Followingmodal({ isOpen, onClose, userId, onOpenPublicProfile }) {
     const [following, setFollowing] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
