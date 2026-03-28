@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowLeft, Settings, MapPin, Calendar, Users, Heart, MessageCircle, Camera, Edit2, Upload, Plus, Image, FileText, X, Save, Trash2, LogOut } from 'lucide-react';
 import './UserProfile.css';
 import ShareDesignModal from './ShareDesignModal';
-import FollowingModal from './Followingmodal';
+import Followingmodal from './Followingmodal';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 export default function UserProfile({ onBack, onLogout, userData: userDataProp, onOpenWorkspace, onUpdateProfile }) {
