@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowLeft, Settings, MapPin, Calendar, Users, Heart, MessageCircle, Camera, Edit2, Upload, Plus, Image, FileText, X, Save, Trash2, LogOut } from 'lucide-react';
 import './UserProfile.css';
 import ShareDesignModal from './ShareDesignModal';
-
+import FollowingModal from './Followingmodal';
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 export default function UserProfile({ onBack, onLogout, userData: userDataProp, onOpenWorkspace, onUpdateProfile }) {
@@ -30,7 +30,8 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
   // Modal de compartir diseño
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [pendingFiles, setPendingFiles] = useState([]);
-
+  // Estado del modal de siguiendo
+  const [followingModalOpen, setFollowingModalOpen] = useState(false);
   // Modal de diseño propio (likes/comentarios)
   const [selectedDesign, setSelectedDesign] = useState(null);
   const [modalLikes, setModalLikes] = useState({ total: 0, liked: false });
@@ -394,9 +395,14 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
           </div>
 
           <div className="profile-stats-container">
-            <div className="profile-stat-item">
-              <div className="profile-stat-number">{liveStats?.posts || 0}</div>
-              <div className="profile-stat-label">Posts</div>
+            <div
+              className="profile-stat-item profile-stat-clickable"
+              onClick={() => setFollowingModalOpen(true)}
+              style={{ cursor: 'pointer' }}
+              title="Ver lista de usuarios que sigues"
+            >
+              <div className="profile-stat-number">{liveStats?.following || 0}</div>
+              <div className="profile-stat-label">Siguiendo</div>
             </div>
             <div className="profile-stat-item">
               <div className="profile-stat-number">{liveStats?.likes?.toLocaleString() || 0}</div>
@@ -628,7 +634,13 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                   Enviar
                 </button>
               </div>
-
+              {/* Modal de siguiendo */}
+              <FollowingModal
+                isOpen={followingModalOpen}
+                onClose={() => setFollowingModalOpen(false)}
+                userId={userDataProp?.id_usuario}
+                onOpenPublicProfile={onOpenPublicProfile}
+              />
               {modalComments.length === 0 ? (
                 <p style={{ textAlign: 'center', color: '#9ca3af' }}>Sin comentarios aún. ¡Sé el primero!</p>
               ) : modalComments.map(c => (
