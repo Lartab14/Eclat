@@ -942,12 +942,14 @@ export default function Workspace({ onBack, userData, draftDesign }) {
 
             {/* ── BARRA MÓVIL INFERIOR ── */}
             <div className="workspace-mobile-bar">
-                {/* Herramienta activa a la izquierda */}
+                {/* Herramienta activa */}
                 <button
                     className="mobile-bar-tool-active"
                     onClick={() => setMobileDrawer(d => d === 'tools' ? null : 'tools')}
+                    title="Herramientas"
                 >
-                    {(() => { const t = tools.find(t => t.id === activeTool); return t ? <t.icon size={22} /> : <Edit3 size={22} />; })()}
+                    {(() => { const t = tools.find(t => t.id === activeTool); return t ? <t.icon size={20} /> : <Edit3 size={20} />; })()}
+                    <span>{(() => { const t = tools.find(t => t.id === activeTool); return t ? t.name.slice(0, 5) : 'Tool'; })()}</span>
                 </button>
 
                 {/* Color actual */}
@@ -955,19 +957,41 @@ export default function Workspace({ onBack, userData, draftDesign }) {
                     className="mobile-bar-color"
                     style={{ background: currentColor }}
                     onClick={() => setMobileDrawer(d => d === 'colors' ? null : 'colors')}
+                    title="Color"
                 />
 
-                {/* Controles rápidos */}
-                <button className="mobile-bar-btn" onClick={handleUndo} disabled={historyStep <= 0}><Undo size={20} /></button>
-                <button className="mobile-bar-btn" onClick={handleRedo} disabled={historyStep >= history.length - 1}><Redo size={20} /></button>
-                <button className={`mobile-bar-btn ${activeTool === 'mover' ? 'active' : ''}`} onClick={() => setActiveTool('mover')}><Move size={20} /></button>
+                {/* Deshacer */}
+                <button className="mobile-bar-btn" onClick={handleUndo} disabled={historyStep <= 0} title="Deshacer">
+                    <Undo size={18} /><span>Atrás</span>
+                </button>
 
-                {/* Capas y acciones */}
-                <button className="mobile-bar-btn" onClick={() => setMobileDrawer(d => d === 'layers' ? null : 'layers')}><Layers size={20} /></button>
-                <button className="mobile-bar-btn" onClick={() => setMobileDrawer(d => d === 'actions' ? null : 'actions')}><GridIcon size={20} /></button>
+                {/* Rehacer */}
+                <button className="mobile-bar-btn" onClick={handleRedo} disabled={historyStep >= history.length - 1} title="Rehacer">
+                    <Redo size={18} /><span>Siguiente</span>
+                </button>
+
+                {/* Capas */}
+                <button
+                    className={`mobile-bar-btn ${mobileDrawer === 'layers' ? 'active' : ''}`}
+                    onClick={() => setMobileDrawer(d => d === 'layers' ? null : 'layers')}
+                    title="Capas"
+                >
+                    <Layers size={18} /><span>Capas</span>
+                </button>
+
+                {/* Acciones */}
+                <button
+                    className={`mobile-bar-btn ${mobileDrawer === 'actions' ? 'active' : ''}`}
+                    onClick={() => setMobileDrawer(d => d === 'actions' ? null : 'actions')}
+                    title="Más opciones"
+                >
+                    <GridIcon size={18} /><span>Más</span>
+                </button>
 
                 {/* Guardar */}
-                <button className="mobile-bar-save" onClick={handleSave}><Save size={20} /></button>
+                <button className="mobile-bar-save" onClick={handleSave} title="Guardar">
+                    <Save size={18} /><span>Guardar</span>
+                </button>
             </div>
 
             {/* ── DRAWERS MÓVIL ── */}
@@ -1075,6 +1099,10 @@ export default function Workspace({ onBack, userData, draftDesign }) {
                 <div className="mobile-drawer-handle" />
                 <p className="mobile-drawer-title">Acciones</p>
                 <div className="mobile-drawer-actions-list">
+                    <button className={`workspace-action-item ${activeTool === 'mover' ? 'active' : ''}`}
+                        onClick={() => { setActiveTool('mover'); setMobileDrawer(null); }}>
+                        <Move size={20} /><span>Mover / Pan</span>
+                    </button>
                     <button className="workspace-action-item" onClick={() => { clearCanvas(); setMobileDrawer(null); }}>
                         <Trash2 size={20} /><span>Limpiar Capa</span>
                     </button>
