@@ -159,6 +159,7 @@ function App() {
           onLogout={handleLogout}
           onOpenWorkspace={handleOpenWorkspace}
           onUpdateProfile={handleUpdateProfile}
+          onOpenPublicProfile={handleOpenPublicProfile}
           userData={userData}
         />
       )}
