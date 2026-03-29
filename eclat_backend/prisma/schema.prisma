@@ -15,110 +15,109 @@ datasource db {
 // ===========================
 
 model Usuario {
-  id_usuario            Int              @id @default(autoincrement())
+  id_usuario            Int      @id @default(autoincrement())
   nombre_usuario        String
-  correo                String           @unique
-  contraseña            String
+  correo                String   @unique
+  contraseña           String
   rol                   String
   foto_perfil           String?
   descripcion           String?
   informacion_adicional Json?
-  fecha_creacion        DateTime         @default(now())
+  fecha_creacion        DateTime @default(now())
 
   // Relaciones
-  diseños               Diseño[]
-  posts                 Post[]
-  comentarios           Comentario[]
-  likes                 Like_post[]
-  guardados             Save_post[]
+  diseños    Diseño[]
+  posts       Post[]
+  comentarios Comentario[]
+  likes       Like_post[]
+  guardados   Save_post[]
 
-  seguidores            Follow[]         @relation("Seguidor")
-  seguidos              Follow[]         @relation("Seguido")
+  seguidores Follow[] @relation("Seguidor")
+  seguidos   Follow[] @relation("Seguido")
 }
 
 model Diseño {
-  id_diseño     Int             @id @default(autoincrement())
-  id_usuario    Int
-  titulo        String
-  descripcion   String?
-  tipo_diseño   String?
-  fecha_subida  DateTime        @default(now())
-  visibilidad   String          @default("publico")
+  id_diseño   Int      @id @default(autoincrement())
+  id_usuario   Int
+  titulo       String
+  descripcion  String?
+  tipo_diseño String?
+  fecha_subida DateTime @default(now())
+  visibilidad  String   @default("publico")
 
   // Relaciones
-  usuario       Usuario         @relation(fields: [id_usuario], references: [id_usuario])
-  archivos      ArchivoDiseño[]
-  posts         Post[]
-  comentarios   Comentario[]  
-  likes         Like_post[]
+  usuario     Usuario          @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  archivos    ArchivoDiseño[]
+  posts       Post[]
+  comentarios Comentario[]
+  likes       Like_post[]
 }
 
 model ArchivoDiseño {
-  id_archivo    Int       @id @default(autoincrement())
-  id_diseño     Int
-  tipo_archivo  String?
-  ruta_archivo  String
-  formato       String?
-  fecha_subida  DateTime  @default(now())
+  id_archivo   Int      @id @default(autoincrement())
+  id_diseño   Int
+  tipo_archivo String?
+  ruta_archivo String
+  formato      String?
+  fecha_subida DateTime @default(now())
 
-  diseño        Diseño    @relation(fields: [id_diseño], references: [id_diseño])
+  diseño Diseño @relation(fields: [id_diseño], references: [id_diseño], onDelete: Cascade)
 }
 
 model Post {
-  id_post           Int          @id @default(autoincrement())
+  id_post           Int      @id @default(autoincrement())
   id_usuario        Int
-  id_diseño         Int?
+  id_diseño        Int?
   contenido_texto   String?
-  fecha_publicacion DateTime     @default(now())
-  visibilidad       String       @default("publico")
+  fecha_publicacion DateTime @default(now())
+  visibilidad       String   @default("publico")
 
-  usuario           Usuario      @relation(fields: [id_usuario], references: [id_usuario])
-  diseño            Diseño?      @relation(fields: [id_diseño], references: [id_diseño])
+  usuario Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  diseño Diseño? @relation(fields: [id_diseño], references: [id_diseño], onDelete: SetNull)
 
-  comentarios       Comentario[]
-  likes             Like_post[]
-  guardados         Save_post[]
+  comentarios Comentario[]
+  likes       Like_post[]
+  guardados   Save_post[]
 }
 
 model Follow {
-  id_seguir             Int      @id @default(autoincrement())
-  id_usuario_seguidor   Int
-  id_usuario_seguido    Int
+  id_seguir           Int @id @default(autoincrement())
+  id_usuario_seguidor Int
+  id_usuario_seguido  Int
 
-  seguidor Usuario @relation("Seguidor", fields: [id_usuario_seguidor], references: [id_usuario])
-  seguido  Usuario @relation("Seguido", fields: [id_usuario_seguido], references: [id_usuario])
+  seguidor Usuario @relation("Seguidor", fields: [id_usuario_seguidor], references: [id_usuario], onDelete: Cascade)
+  seguido  Usuario @relation("Seguido", fields: [id_usuario_seguido], references: [id_usuario], onDelete: Cascade)
 }
 
 model Save_post {
-  id_guardado Int     @id @default(autoincrement())
+  id_guardado Int @id @default(autoincrement())
   id_usuario  Int
   id_post     Int
 
-  usuario     Usuario @relation(fields: [id_usuario], references: [id_usuario])
-  post        Post    @relation(fields: [id_post], references: [id_post])
+  usuario Usuario @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  post    Post    @relation(fields: [id_post], references: [id_post], onDelete: Cascade)
 }
 
 model Comentario {
   id_comentario Int      @id @default(autoincrement())
-  id_post       Int?     
-  id_diseño     Int?     
+  id_post       Int?
+  id_diseño    Int?
   id_usuario    Int
   contenido     String
   fecha         DateTime @default(now())
 
-  usuario       Usuario  @relation(fields: [id_usuario], references: [id_usuario])
-  post          Post?    @relation(fields: [id_post], references: [id_post])
-  diseño        Diseño?  @relation(fields: [id_diseño], references: [id_diseño]) 
+  usuario Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  post    Post?    @relation(fields: [id_post], references: [id_post], onDelete: Cascade)
+  diseño Diseño? @relation(fields: [id_diseño], references: [id_diseño], onDelete: Cascade)
 }
 
 model Like_post {
-  id_like     Int     @id @default(autoincrement())
-  id_usuario  Int
-  id_post     Int?    
-  id_diseño   Int?    
-  
-  usuario     Usuario  @relation(fields: [id_usuario], references: [id_usuario])
-  post        Post?    @relation(fields: [id_post], references: [id_post])
-  diseño      Diseño?  @relation(fields: [id_diseño], references: [id_diseño]) 
-}
+  id_like    Int  @id @default(autoincrement())
+  id_usuario Int
+  id_post    Int?
+  id_diseño Int?
 
+  usuario Usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: Cascade)
+  post    Post?    @relation(fields: [id_post], references: [id_post], onDelete: Cascade)
+  diseño Diseño? @relation(fields: [id_diseño], references: [id_diseño], onDelete: Cascade)
+}
