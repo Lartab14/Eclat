@@ -115,6 +115,16 @@
   width: 100%;
 }
 
+/* Estado activo: color morado + subrayado fijo */
+.nav-link--active {
+  color: #7e22ce;
+  font-weight: 600;
+}
+
+.nav-link--active::after {
+  width: 100%;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -2185,6 +2195,13 @@
 .mobile-nav-link:hover {
   background: #faf5ff;
   color: #7e22ce;
+}
+
+/* Estado activo menú móvil */
+.mobile-nav-link--active {
+  background: #faf5ff;
+  color: #7e22ce;
+  font-weight: 600;
 }
 
 .mobile-nav-profile {

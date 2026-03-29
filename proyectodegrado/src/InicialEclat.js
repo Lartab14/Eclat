@@ -29,7 +29,8 @@ export default function InicialEclat({
   onOpenTrends,
   onOpenWorkspace,
   onOpenUpload,
-  userData
+  userData,
+  activePage = 'home'   // ← nueva prop: 'home' | 'colecciones' | 'diseñadores' | 'tendencias'
 }) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [activeTool, setActiveTool] = useState('brush');
@@ -301,10 +302,14 @@ export default function InicialEclat({
           </div>
 
           <nav className="nav-menu">
-            <a href="#" className="nav-link">Explorar</a>
-            <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); onOpenCollections(); }}>Colecciones</a>
-            <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); onOpenDesigners(); }}>Diseñadores</a>
-            <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); onOpenTrends(); }}>Tendencias</a>
+            <a href="#" className={`nav-link${activePage === 'home' ? ' nav-link--active' : ''}`}
+              onClick={(e) => { e.preventDefault(); onNavigateHome(); }}>Explorar</a>
+            <a href="#" className={`nav-link${activePage === 'colecciones' ? ' nav-link--active' : ''}`}
+              onClick={(e) => { e.preventDefault(); onOpenCollections(); }}>Colecciones</a>
+            <a href="#" className={`nav-link${activePage === 'diseñadores' ? ' nav-link--active' : ''}`}
+              onClick={(e) => { e.preventDefault(); onOpenDesigners(); }}>Diseñadores</a>
+            <a href="#" className={`nav-link${activePage === 'tendencias' ? ' nav-link--active' : ''}`}
+              onClick={(e) => { e.preventDefault(); onOpenTrends(); }}>Tendencias</a>
           </nav>
 
           <div className="header-actions">
@@ -410,10 +415,14 @@ export default function InicialEclat({
       {/* Menú móvil desplegable */}
       {mobileMenuOpen && (
         <div className="mobile-nav-drawer" onClick={() => setMobileMenuOpen(false)}>
-          <a href="#" className="mobile-nav-link" onClick={e => { e.preventDefault(); }}>Explorar</a>
-          <a href="#" className="mobile-nav-link" onClick={e => { e.preventDefault(); onOpenCollections(); }}>Colecciones</a>
-          <a href="#" className="mobile-nav-link" onClick={e => { e.preventDefault(); onOpenDesigners(); }}>Diseñadores</a>
-          <a href="#" className="mobile-nav-link" onClick={e => { e.preventDefault(); onOpenTrends(); }}>Tendencias</a>
+          <a href="#" className={`mobile-nav-link${activePage === 'home' ? ' mobile-nav-link--active' : ''}`}
+            onClick={e => { e.preventDefault(); onNavigateHome(); }}>Explorar</a>
+          <a href="#" className={`mobile-nav-link${activePage === 'colecciones' ? ' mobile-nav-link--active' : ''}`}
+            onClick={e => { e.preventDefault(); onOpenCollections(); }}>Colecciones</a>
+          <a href="#" className={`mobile-nav-link${activePage === 'diseñadores' ? ' mobile-nav-link--active' : ''}`}
+            onClick={e => { e.preventDefault(); onOpenDesigners(); }}>Diseñadores</a>
+          <a href="#" className={`mobile-nav-link${activePage === 'tendencias' ? ' mobile-nav-link--active' : ''}`}
+            onClick={e => { e.preventDefault(); onOpenTrends(); }}>Tendencias</a>
           <div className="mobile-nav-divider" />
           <button className="mobile-nav-link mobile-nav-profile" onClick={onOpenProfile}>
             <User size={16} /> Mi perfil
