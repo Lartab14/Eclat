@@ -769,15 +769,17 @@
         flex: 1;
         min-height: 0;
         padding: 0.5rem;
-        touch-action: none;
+        touch-action: auto;
         overflow: hidden;
         position: relative;
+        z-index: 1;
     }
 
     .workspace-canvas {
         touch-action: none;
         max-width: 100%;
         max-height: 100%;
+        display: block;
     }
 
     /* ── Controles de zoom: esquina superior derecha, verticales, compactos ── */
@@ -818,7 +820,7 @@
         gap: 0.2rem;
         flex-shrink: 0;
         position: relative;
-        z-index: 50;
+        z-index: 200;
     }
 
     .mobile-bar-btn {
@@ -920,7 +922,7 @@
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.5);
-        z-index: 90;
+        z-index: 150;
         animation: backdropIn 0.2s ease;
     }
 
@@ -946,7 +948,7 @@
         background: #1c1c1c;
         border-top: 1px solid #333;
         border-radius: 20px 20px 0 0;
-        z-index: 100;
+        z-index: 250;
         padding: 0 1.25rem 1.5rem;
         max-height: 72dvh;
         overflow-y: auto;

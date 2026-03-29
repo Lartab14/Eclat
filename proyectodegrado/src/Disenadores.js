@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Users, Heart, MapPin } from 'lucide-react';
+import { User, Users, Heart, MapPin, X } from 'lucide-react';
 import SearchBar from './Searchbar';
 import './Disenadores.css';
 
@@ -22,6 +22,7 @@ export default function Disenadores({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [following, setFollowing] = useState({});
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => { cargarDisenadoresAleatorios(); }, []);
 
@@ -109,12 +110,35 @@ export default function Disenadores({
             <a href="#" className="nav-link" onClick={(e) => { e.preventDefault(); onOpenTrends(); }}>Tendencias</a>
           </nav>
           <div className="header-actions">
+            {/* Botón hamburguesa — solo visible en móvil */}
+            <button
+              className="icon-button mobile-menu-btn"
+              onClick={() => setMobileMenuOpen(o => !o)}
+              aria-label="Menú"
+            >
+              {mobileMenuOpen
+                ? <X size={20} />
+                : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+              }
+            </button>
             <SearchBar onOpenPublicProfile={onOpenPublicProfile} />
             <button className="upload-button" onClick={onOpenWorkspace}>Crear diseño</button>
             <button className="icon-button" onClick={onOpenProfile}><User /></button>
           </div>
         </div>
       </header>
+
+      {/* Drawer móvil */}
+      {mobileMenuOpen && (
+        <div className="mobile-nav-drawer" onClick={() => setMobileMenuOpen(false)}>
+          <a href="#" className="mobile-nav-link" onClick={e => { e.preventDefault(); onNavigateHome(); }}>Explorar</a>
+          <a href="#" className="mobile-nav-link" onClick={e => { e.preventDefault(); onOpenCollections(); }}>Colecciones</a>
+          <a href="#" className="mobile-nav-link active">Diseñadores</a>
+          <a href="#" className="mobile-nav-link" onClick={e => { e.preventDefault(); onOpenTrends(); }}>Tendencias</a>
+          <div className="mobile-nav-divider" />
+          <button className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); onOpenProfile(); }}>Mi perfil</button>
+        </div>
+      )}
 
       <section className="designers-hero-section">
         <video className="hero-video-background" autoPlay loop muted playsInline>

@@ -347,7 +347,8 @@ export default function Workspace({ onBack, userData, draftDesign }) {
     };
 
     const handleTouchStart = (e) => {
-        if (mobileDrawer) { setMobileDrawer(null); return; }
+        // Si hay un drawer abierto, no dibujar (el backdrop se encarga de cerrarlo)
+        if (mobileDrawer) { return; }
         e.preventDefault();
         const touch = e.touches[0];
         const synthetic = { clientX: touch.clientX, clientY: touch.clientY };

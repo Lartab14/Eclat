@@ -489,7 +489,9 @@ body {
 }
 
 @keyframes spinViewer {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Badge "3D Real" */
@@ -595,10 +597,21 @@ body {
     border-radius: 1rem;
 }
 
-.texture-item:nth-child(3n) .texture-placeholder { aspect-ratio: 3/5; }
-.texture-item:nth-child(4n) .texture-placeholder { aspect-ratio: 4/5; }
-.texture-item:nth-child(5n) .texture-placeholder { aspect-ratio: 2/3; }
-.texture-item:nth-child(7n) .texture-placeholder { aspect-ratio: 1/1; }
+.texture-item:nth-child(3n) .texture-placeholder {
+    aspect-ratio: 3/5;
+}
+
+.texture-item:nth-child(4n) .texture-placeholder {
+    aspect-ratio: 4/5;
+}
+
+.texture-item:nth-child(5n) .texture-placeholder {
+    aspect-ratio: 2/3;
+}
+
+.texture-item:nth-child(7n) .texture-placeholder {
+    aspect-ratio: 1/1;
+}
 
 
 /* MODAL DE TELA 3D                             */
@@ -618,8 +631,13 @@ body {
 }
 
 @keyframes backdropIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .fabric-modal {
@@ -635,8 +653,15 @@ body {
 }
 
 @keyframes modalIn {
-    from { opacity: 0; transform: scale(0.92) translateY(24px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    from {
+        opacity: 0;
+        transform: scale(0.92) translateY(24px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 .fabric-modal-close {
@@ -856,8 +881,15 @@ body {
 }
 
 @keyframes mascotFloat {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-12px); }
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-12px);
+    }
 }
 
 .inspiration-mascot::before {
@@ -874,8 +906,17 @@ body {
 }
 
 @keyframes shadowPulse {
-    0%, 100% { transform: translateX(-50%) scaleX(1); opacity: 0.8; }
-    50% { transform: translateX(-50%) scaleX(0.7); opacity: 0.4; }
+
+    0%,
+    100% {
+        transform: translateX(-50%) scaleX(1);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: translateX(-50%) scaleX(0.7);
+        opacity: 0.4;
+    }
 }
 
 .inspiration-mascot img {
@@ -920,7 +961,7 @@ body {
     color: #1f2937;
 }
 
-.inspiration-text > p {
+.inspiration-text>p {
     color: #6b7280;
     margin-bottom: 2.25rem;
     font-size: 1.05rem;
@@ -964,14 +1005,18 @@ body {
     transition: left 0.5s ease;
 }
 
-.inspiration-cta-btn:hover::before { left: 160%; }
+.inspiration-cta-btn:hover::before {
+    left: 160%;
+}
 
 .inspiration-cta-btn:hover {
     transform: translateY(-2px) scale(1.03);
     box-shadow: 0 8px 24px rgba(126, 34, 206, 0.45), 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
-.inspiration-cta-btn:active { transform: translateY(0) scale(0.99); }
+.inspiration-cta-btn:active {
+    transform: translateY(0) scale(0.99);
+}
 
 .inspiration-cta-icon {
     display: flex;
@@ -989,7 +1034,9 @@ body {
     transition: transform 0.25s ease;
 }
 
-.inspiration-cta-btn:hover .inspiration-cta-arrow { transform: translateX(4px); }
+.inspiration-cta-btn:hover .inspiration-cta-arrow {
+    transform: translateX(4px);
+}
 
 
 /* FOOTER (oscuro)               */
@@ -1132,13 +1179,86 @@ body {
     transition: color 0.2s;
 }
 
-.footer-links a:hover { color: #c084fc; }
+.footer-links a:hover {
+    color: #c084fc;
+}
 
 .footer-dot {
     color: rgba(172, 131, 245, 0.25);
     font-size: 0.78rem;
 }
 
+
+/* ═══════════ MENÚ MÓVIL ═══════════ */
+
+.mobile-menu-btn {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-btn {
+        display: flex !important;
+    }
+}
+
+.mobile-nav-drawer {
+    display: none;
+    position: sticky;
+    top: 57px;
+    z-index: 99;
+    background: white;
+    border-bottom: 1px solid rgba(147, 51, 234, 0.1);
+    box-shadow: 0 4px 16px rgba(147, 51, 234, 0.08);
+    flex-direction: column;
+    padding: 0.5rem 0 0.75rem;
+    animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.mobile-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.25rem;
+    color: #374151;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s, color 0.15s;
+}
+
+.mobile-nav-link:hover {
+    background: #faf5ff;
+    color: #7e22ce;
+}
+
+.mobile-nav-link.active {
+    color: #9333ea;
+    font-weight: 600;
+}
+
+.mobile-nav-divider {
+    height: 1px;
+    background: rgba(147, 51, 234, 0.1);
+    margin: 0.4rem 1.25rem;
+}
 
 /* RESPONSIVE */
 
@@ -1150,7 +1270,9 @@ body {
 }
 
 @media (max-width: 1024px) {
-    .hero-title { font-size: 2.5rem; }
+    .hero-title {
+        font-size: 2.5rem;
+    }
 
     .textures-masonry {
         grid-template-columns: repeat(2, 1fr);
@@ -1162,8 +1284,13 @@ body {
         gap: 2rem;
     }
 
-    .inspiration-mascot { margin: 0 auto; }
-    .inspiration-text { margin: 0 auto; }
+    .inspiration-mascot {
+        margin: 0 auto;
+    }
+
+    .inspiration-text {
+        margin: 0 auto;
+    }
 
     .inspiration-eyebrow,
     .inspiration-actions {
@@ -1172,9 +1299,17 @@ body {
 }
 
 @media (max-width: 768px) {
-    .nav-menu { display: none; }
+    .nav-menu {
+        display: none;
+    }
 
-    .trends-hero-section { height: 380px; }
+    .mobile-nav-drawer {
+        display: flex;
+    }
+
+    .trends-hero-section {
+        height: 380px;
+    }
 
     .hero-text-overlay {
         left: 1.5rem;
@@ -1182,19 +1317,34 @@ body {
         max-width: 90%;
     }
 
-    .hero-text-title { font-size: 1.6rem; }
-    .hero-title { font-size: 2rem; }
-    .hero-description { font-size: 1rem; }
-    .hero-stats-row { gap: 1.5rem; }
+    .hero-text-title {
+        font-size: 1.6rem;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+    }
+
+    .hero-description {
+        font-size: 1rem;
+    }
+
+    .hero-stats-row {
+        gap: 1.5rem;
+    }
 
     .textures-masonry {
         grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
     }
 
-    .library-title { font-size: 1.5rem; }
+    .library-title {
+        font-size: 1.5rem;
+    }
 
-    .inspiration-section { padding: 3rem 0; }
+    .inspiration-section {
+        padding: 3rem 0;
+    }
 
     .inspiration-mascot {
         width: 200px;
@@ -1243,7 +1393,9 @@ body {
         grid-template-columns: 1fr;
     }
 
-    .header-actions { gap: 0.5rem; }
+    .header-actions {
+        gap: 0.5rem;
+    }
 
     .upload-button {
         padding: 0.5rem 1rem;

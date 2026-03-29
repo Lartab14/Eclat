@@ -440,6 +440,7 @@ export default function Tendencias({
 }) {
     const [email, setEmail] = useState('');
     const [selectedFabric, setSelectedFabric] = useState(null);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     // Datos enriquecidos de telas
     const textures = [
@@ -602,6 +603,17 @@ export default function Tendencias({
                     </nav>
 
                     <div className="header-actions">
+                        {/* Botón hamburguesa — solo visible en móvil */}
+                        <button
+                            className="icon-button mobile-menu-btn"
+                            onClick={() => setMobileMenuOpen(o => !o)}
+                            aria-label="Menú"
+                        >
+                            {mobileMenuOpen
+                                ? <X size={20} />
+                                : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+                            }
+                        </button>
                         <SearchBar onOpenPublicProfile={onOpenPublicProfile} />
                         <button className="upload-button" onClick={onOpenWorkspace}>Crear diseño</button>
                         <button className="icon-button" onClick={onOpenProfile}>
@@ -610,6 +622,18 @@ export default function Tendencias({
                     </div>
                 </div>
             </header>
+
+            {/* Drawer móvil */}
+            {mobileMenuOpen && (
+                <div className="mobile-nav-drawer" onClick={() => setMobileMenuOpen(false)}>
+                    <span className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); onNavigateHome(); }}>Explorar</span>
+                    <span className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); onOpenCollections(); }}>Colecciones</span>
+                    <span className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); onOpenDesigners(); }}>Diseñadores</span>
+                    <span className="mobile-nav-link active">Tendencias</span>
+                    <div className="mobile-nav-divider" />
+                    <button className="mobile-nav-link" onClick={() => { setMobileMenuOpen(false); onOpenProfile(); }}>Mi perfil</button>
+                </div>
+            )}
 
             {/* Hero Section con VIDEO */}
             <section className="trends-hero-section">
