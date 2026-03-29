@@ -54,6 +54,9 @@ export default function Workspace({ onBack, userData, draftDesign }) {
     const [history, setHistory] = useState([]);
     const [historyStep, setHistoryStep] = useState(-1);
 
+    // ── Estado móvil ──
+    const [mobileDrawer, setMobileDrawer] = useState(null); // null | 'tools' | 'colors' | 'layers' | 'actions'
+
     // ── Referencias ──
     const compositeCanvasRef = useRef(null);
     const layerCanvasRefs = useRef({});
@@ -328,6 +331,41 @@ export default function Workspace({ onBack, userData, draftDesign }) {
             x: (e.clientX - rect.left) * (canvas.width / rect.width),
             y: (e.clientY - rect.top) * (canvas.height / rect.height)
         };
+    };
+
+    // ── Touch helpers ─────────────────────────────────────────────────────────
+    const getTouchPos = (e) => {
+        const canvas = compositeCanvasRef.current;
+        const rect = canvas.getBoundingClientRect();
+        const touch = e.touches[0] || e.changedTouches[0];
+        return {
+            x: (touch.clientX - rect.left) * (canvas.width / rect.width),
+            y: (touch.clientY - rect.top) * (canvas.height / rect.height),
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+        };
+    };
+
+    const handleTouchStart = (e) => {
+        if (mobileDrawer) { setMobileDrawer(null); return; }
+        e.preventDefault();
+        const touch = e.touches[0];
+        const synthetic = { clientX: touch.clientX, clientY: touch.clientY };
+        startDrawing(synthetic);
+    };
+
+    const handleTouchMove = (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const synthetic = { clientX: touch.clientX, clientY: touch.clientY };
+        draw(synthetic);
+    };
+
+    const handleTouchEnd = (e) => {
+        e.preventDefault();
+        const touch = e.changedTouches[0];
+        const synthetic = { clientX: touch.clientX, clientY: touch.clientY };
+        stopDrawing(synthetic);
     };
 
     const startDrawing = (e) => {
@@ -835,6 +873,9 @@ export default function Workspace({ onBack, userData, draftDesign }) {
                             onMouseMove={draw}
                             onMouseUp={stopDrawing}
                             onMouseLeave={stopDrawing}
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
                         />
                         <div className="workspace-canvas-controls">
                             <button className="workspace-control-btn" onClick={handleUndo} disabled={historyStep <= 0}>
@@ -895,6 +936,159 @@ export default function Workspace({ onBack, userData, draftDesign }) {
                                 </div>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* ── BARRA MÓVIL INFERIOR ── */}
+            <div className="workspace-mobile-bar">
+                {/* Herramienta activa a la izquierda */}
+                <button
+                    className="mobile-bar-tool-active"
+                    onClick={() => setMobileDrawer(d => d === 'tools' ? null : 'tools')}
+                >
+                    {(() => { const t = tools.find(t => t.id === activeTool); return t ? <t.icon size={22} /> : <Edit3 size={22} />; })()}
+                </button>
+
+                {/* Color actual */}
+                <button
+                    className="mobile-bar-color"
+                    style={{ background: currentColor }}
+                    onClick={() => setMobileDrawer(d => d === 'colors' ? null : 'colors')}
+                />
+
+                {/* Controles rápidos */}
+                <button className="mobile-bar-btn" onClick={handleUndo} disabled={historyStep <= 0}><Undo size={20} /></button>
+                <button className="mobile-bar-btn" onClick={handleRedo} disabled={historyStep >= history.length - 1}><Redo size={20} /></button>
+                <button className={`mobile-bar-btn ${activeTool === 'mover' ? 'active' : ''}`} onClick={() => setActiveTool('mover')}><Move size={20} /></button>
+
+                {/* Capas y acciones */}
+                <button className="mobile-bar-btn" onClick={() => setMobileDrawer(d => d === 'layers' ? null : 'layers')}><Layers size={20} /></button>
+                <button className="mobile-bar-btn" onClick={() => setMobileDrawer(d => d === 'actions' ? null : 'actions')}><GridIcon size={20} /></button>
+
+                {/* Guardar */}
+                <button className="mobile-bar-save" onClick={handleSave}><Save size={20} /></button>
+            </div>
+
+            {/* ── DRAWERS MÓVIL ── */}
+            {mobileDrawer && (
+                <div className="mobile-drawer-backdrop" onClick={() => setMobileDrawer(null)} />
+            )}
+
+            {/* Drawer: Herramientas */}
+            <div className={`mobile-drawer ${mobileDrawer === 'tools' ? 'open' : ''}`}>
+                <div className="mobile-drawer-handle" />
+                <p className="mobile-drawer-title">Herramientas</p>
+                <div className="mobile-drawer-tools-grid">
+                    {tools.map(tool => {
+                        const Icon = tool.icon;
+                        return (
+                            <button
+                                key={tool.id}
+                                className={`mobile-drawer-tool-btn ${activeTool === tool.id ? 'active' : ''}`}
+                                onClick={() => { setActiveTool(tool.id); setMobileDrawer(null); }}
+                            >
+                                <Icon size={24} />
+                                <span>{tool.name}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+                <div className="mobile-drawer-size">
+                    <div className="workspace-size-header">
+                        <span className="workspace-size-label">Grosor del trazo</span>
+                        <span className="workspace-size-value">{brushSize}px</span>
+                    </div>
+                    <input type="range" min="1" max="50" value={brushSize}
+                        onChange={(e) => setBrushSize(parseInt(e.target.value))}
+                        className="workspace-slider mobile-drawer-slider" />
+                </div>
+            </div>
+
+            {/* Drawer: Colores */}
+            <div className={`mobile-drawer ${mobileDrawer === 'colors' ? 'open' : ''}`}>
+                <div className="mobile-drawer-handle" />
+                <p className="mobile-drawer-title">Color</p>
+                <div className="mobile-drawer-color-row">
+                    <input type="color" value={currentColor}
+                        onChange={(e) => setCurrentColor(e.target.value)}
+                        className="workspace-color-swatch mobile-color-picker" />
+                    <span className="mobile-color-hex">{currentColor.toUpperCase()}</span>
+                </div>
+                <div className="mobile-drawer-palette">
+                    {colorPalette.map(color => (
+                        <div key={color}
+                            className={`workspace-palette-color mobile-palette-dot ${currentColor === color ? 'selected' : ''}`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => { setCurrentColor(color); setMobileDrawer(null); }} />
+                    ))}
+                </div>
+            </div>
+
+            {/* Drawer: Capas */}
+            <div className={`mobile-drawer ${mobileDrawer === 'layers' ? 'open' : ''}`}>
+                <div className="mobile-drawer-handle" />
+                <div className="mobile-drawer-layers-header">
+                    <p className="mobile-drawer-title" style={{ margin: 0 }}>Capas</p>
+                    <button className="workspace-add-layer-btn" onClick={addLayer}><Plus size={18} /></button>
+                </div>
+                <div className="mobile-drawer-layers-list">
+                    {layers.slice().reverse().map((layer) => (
+                        <div key={layer.id}
+                            className={`workspace-layer-item ${activeLayerId === layer.id ? 'active' : ''}`}
+                            onClick={() => { setActiveLayerId(layer.id); setMobileDrawer(null); }}>
+                            <div className="workspace-layer-header">
+                                <span className="workspace-layer-name">{layer.name}</span>
+                                <div className="workspace-layer-actions">
+                                    <button className="workspace-layer-action-btn"
+                                        onClick={(e) => { e.stopPropagation(); toggleLayerVisibility(layer.id); }}>
+                                        {layer.visible ? <Eye size={16} /> : <EyeOff size={16} />}
+                                    </button>
+                                    <button className="workspace-layer-action-btn"
+                                        onClick={(e) => { e.stopPropagation(); duplicateLayer(layer.id); }}>
+                                        <Copy size={16} />
+                                    </button>
+                                    <button className="workspace-layer-action-btn delete"
+                                        onClick={(e) => { e.stopPropagation(); deleteLayer(layer.id); }}
+                                        disabled={layers.length <= 1}>
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="workspace-layer-opacity">
+                                <div className="workspace-size-header">
+                                    <span className="workspace-size-label">Opacidad</span>
+                                    <span className="workspace-size-value">{layer.opacity}%</span>
+                                </div>
+                                <input type="range" min="0" max="100" value={layer.opacity}
+                                    onChange={(e) => updateLayerOpacity(layer.id, parseInt(e.target.value))}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="workspace-layer-opacity-slider" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Drawer: Acciones */}
+            <div className={`mobile-drawer ${mobileDrawer === 'actions' ? 'open' : ''}`}>
+                <div className="mobile-drawer-handle" />
+                <p className="mobile-drawer-title">Acciones</p>
+                <div className="mobile-drawer-actions-list">
+                    <button className="workspace-action-item" onClick={() => { clearCanvas(); setMobileDrawer(null); }}>
+                        <Trash2 size={20} /><span>Limpiar Capa</span>
+                    </button>
+                    <button className="workspace-action-item" onClick={() => { fileInputRef.current?.click(); setMobileDrawer(null); }}>
+                        <Upload size={20} /><span>Importar Imagen</span>
+                    </button>
+                    <button className="workspace-action-item" onClick={() => { handleExport(); setMobileDrawer(null); }}>
+                        <Download size={20} /><span>Exportar PNG</span>
+                    </button>
+                    <div className="mobile-drawer-zoom-row">
+                        <button className="workspace-control-btn" onClick={handleZoomOut}><ZoomOut size={20} /></button>
+                        <span className="mobile-zoom-label">{Math.round(zoom * 100)}%</span>
+                        <button className="workspace-control-btn" onClick={handleZoomIn}><ZoomIn size={20} /></button>
+                        <button className="workspace-control-btn" onClick={handleResetZoom}><RotateCcw size={20} /></button>
                     </div>
                 </div>
             </div>
