@@ -5,7 +5,7 @@ import ShareDesignModal from './ShareDesignModal';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
-export default function UserProfile({ onBack, onLogout, userData: userDataProp, onOpenWorkspace, onUpdateProfile }) {
+export default function UserProfile({ onBack, onLogout, userData: userDataProp, onOpenWorkspace, onUpdateProfile, onOpenPublicProfile }) {
   const [activeTab, setActiveTab] = useState('public');
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -271,9 +271,47 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     setFollowingModalOpen(true);
     setIsLoadingFollowing(true);
     try {
-      const res = await fetch(`${API_URL}/usuarios/${userDataProp.id_usuario}/following`);
+      const res = await fetch(`${API_URL}/follows/following/${userDataProp.id_usuario}`);
       const data = await res.json();
-      setFollowingList(data.following || data.usuarios || []);
+      const lista = Array.isArray(data) ? data : (data.following || data.usuarios || []);
+
+      // Si cada registro ya trae nombre_usuario, usarlo directo
+      // Si solo trae id_usuario_seguido, hacer fetch de cada perfil
+      const normalizada = await Promise.all(
+        lista.map(async (item) => {
+          const nombre = item.nombre_usuario || item.seguido?.nombre_usuario || item.name;
+          const foto = item.foto_perfil || item.seguido?.foto_perfil || item.avatarImage;
+          const id = item.id_usuario_seguido || item.id_usuario || item.id;
+
+          if (nombre) {
+            // Ya tenemos los datos del usuario
+            return {
+              id_usuario: id,
+              nombre_usuario: nombre,
+              foto_perfil: foto || null,
+              username: item.username || ('@' + nombre.toLowerCase().replace(/\s+/g, '')),
+            };
+          }
+
+          // Solo tenemos el id — buscar el perfil
+          try {
+            const userRes = await fetch(`${API_URL}/usuarios/${id}`);
+            const userData = await userRes.json();
+            let infoAdicional = {};
+            try { infoAdicional = typeof userData.informacion_adicional === 'string' ? JSON.parse(userData.informacion_adicional) : userData.informacion_adicional || {}; } catch (_) { }
+            return {
+              id_usuario: userData.id_usuario || id,
+              nombre_usuario: userData.nombre_usuario || 'Usuario',
+              foto_perfil: userData.foto_perfil || infoAdicional.foto_perfil || null,
+              username: '@' + (userData.nombre_usuario || 'usuario').toLowerCase().replace(/\s+/g, ''),
+            };
+          } catch (_) {
+            return { id_usuario: id, nombre_usuario: 'Usuario', foto_perfil: null, username: '@usuario' };
+          }
+        })
+      );
+
+      setFollowingList(normalizada);
     } catch (e) {
       console.error('Error cargando siguiendo:', e);
       setFollowingList([]);
@@ -567,9 +605,8 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                           className="following-visit-btn"
                           onClick={() => {
                             setFollowingModalOpen(false);
-                            if (typeof onBack === 'function') {
-                              // Navega al perfil pasando el usuario seleccionado
-                              onBack(user);
+                            if (typeof onOpenPublicProfile === 'function') {
+                              onOpenPublicProfile(user.id_usuario);
                             }
                           }}
                         >
