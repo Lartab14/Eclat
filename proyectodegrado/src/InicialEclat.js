@@ -44,6 +44,7 @@ export default function InicialEclat({
 
   // Estados de búsqueda
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -57,13 +58,13 @@ export default function InicialEclat({
   const [errorFeatured, setErrorFeatured] = useState(null);
 
   // ── Modal de post destacado ────────────────────────────────
-  const [selectedDesign, setSelectedDesign]       = useState(null);
-  const [modalLikes, setModalLikes]               = useState({ total: 0, liked: false });
-  const [modalComments, setModalComments]         = useState([]);
-  const [newComment, setNewComment]               = useState('');
-  const [isPostingComment, setIsPostingComment]   = useState(false);
+  const [selectedDesign, setSelectedDesign] = useState(null);
+  const [modalLikes, setModalLikes] = useState({ total: 0, liked: false });
+  const [modalComments, setModalComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [isPostingComment, setIsPostingComment] = useState(false);
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
   const designs = [
     { id: 1, image: diseño1, className: 'design-card-blue' },
@@ -243,9 +244,9 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
         fetch(`${API_URL}/likes/design/${design.id}?id_usuario=${userId}`),
         fetch(`${API_URL}/comments/design/${design.id}`)
       ]);
-      const likesData    = await likesRes.json();
+      const likesData = await likesRes.json();
       const commentsData = await commentsRes.json();
-      if (likesData.success)    setModalLikes({ total: likesData.total, liked: likesData.liked });
+      if (likesData.success) setModalLikes({ total: likesData.total, liked: likesData.liked });
       if (commentsData.success) setModalComments(commentsData.comentarios || []);
     } catch (err) { console.error('Error cargando likes/comentarios:', err); }
   };
@@ -254,7 +255,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
   const handleToggleLike = async () => {
     if (!selectedDesign || !userData?.id_usuario) return;
     try {
-      const res  = await fetch(`${API_URL}/likes/design/${selectedDesign.id}/toggle`, {
+      const res = await fetch(`${API_URL}/likes/design/${selectedDesign.id}/toggle`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_usuario: userData.id_usuario })
@@ -276,7 +277,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
     if (!newComment.trim() || !selectedDesign) return;
     setIsPostingComment(true);
     try {
-      const res  = await fetch(`${API_URL}/comments/design/${selectedDesign.id}`, {
+      const res = await fetch(`${API_URL}/comments/design/${selectedDesign.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id_usuario: userData?.id_usuario, contenido: newComment })
@@ -307,6 +308,17 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
           </nav>
 
           <div className="header-actions">
+            {/* Botón hamburguesa — solo visible en móvil */}
+            <button
+              className="icon-button mobile-menu-btn"
+              onClick={() => setMobileMenuOpen(o => !o)}
+              aria-label="Menú"
+            >
+              {mobileMenuOpen
+                ? <X size={20} />
+                : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+              }
+            </button>
             {/* Buscador */}
             <div className="search-wrapper" ref={searchRef}>
               <button className="icon-button" onClick={handleOpenSearch}>
@@ -395,7 +407,19 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Menú móvil desplegable */}
+      {mobileMenuOpen && (
+        <div className="mobile-nav-drawer" onClick={() => setMobileMenuOpen(false)}>
+          <a href="#" className="mobile-nav-link" onClick={e => { e.preventDefault(); }}>Explorar</a>
+          <a href="#" className="mobile-nav-link" onClick={e => { e.preventDefault(); onOpenCollections(); }}>Colecciones</a>
+          <a href="#" className="mobile-nav-link" onClick={e => { e.preventDefault(); onOpenDesigners(); }}>Diseñadores</a>
+          <a href="#" className="mobile-nav-link" onClick={e => { e.preventDefault(); onOpenTrends(); }}>Tendencias</a>
+          <div className="mobile-nav-divider" />
+          <button className="mobile-nav-link mobile-nav-profile" onClick={onOpenProfile}>
+            <User size={16} /> Mi perfil
+          </button>
+        </div>
+      )}
       <main className="main-content">
         <div className="content-grid">
           {/* Left Side - Content */}
