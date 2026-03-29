@@ -31,6 +31,11 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [pendingFiles, setPendingFiles] = useState([]);
 
+  // Modal de "Siguiendo"
+  const [followingModalOpen, setFollowingModalOpen] = useState(false);
+  const [followingList, setFollowingList] = useState([]);
+  const [isLoadingFollowing, setIsLoadingFollowing] = useState(false);
+
   // Modal de diseño propio (likes/comentarios)
   const [selectedDesign, setSelectedDesign] = useState(null);
   const [modalLikes, setModalLikes] = useState({ total: 0, liked: false });
@@ -262,6 +267,21 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     finally { setIsPostingComment(false); }
   };
 
+  const handleOpenFollowing = async () => {
+    setFollowingModalOpen(true);
+    setIsLoadingFollowing(true);
+    try {
+      const res = await fetch(`${API_URL}/usuarios/${userDataProp.id_usuario}/following`);
+      const data = await res.json();
+      setFollowingList(data.following || data.usuarios || []);
+    } catch (e) {
+      console.error('Error cargando siguiendo:', e);
+      setFollowingList([]);
+    } finally {
+      setIsLoadingFollowing(false);
+    }
+  };
+
   const handleCreateCanvas = () => { if (onOpenWorkspace) onOpenWorkspace(); };
   const handleEditDraft = (design) => { if (onOpenWorkspace) onOpenWorkspace(design); };
   const currentDesigns = activeTab === 'public' ? publicDesigns : privateDesigns;
@@ -276,7 +296,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
   // Botones de upload reutilizables
   const UploadButtons = () => (
     <div className="profile-upload-buttons">
-      <button className="profile-upload-btn"  onClick={() => setShareModalOpen(true)}>
+      <button className="profile-upload-btn" onClick={() => setShareModalOpen(true)}>
         <Image size={20} />Subir Archivos
       </button>
       <button className="profile-upload-btn profile-upload-btn-secondary" onClick={handleCreateCanvas}>
@@ -386,7 +406,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
               <div className="profile-stat-number">{liveStats?.followers?.toLocaleString() || 0}</div>
               <div className="profile-stat-label">Seguidores</div>
             </div>
-            <div className="profile-stat-item">
+            <div className="profile-stat-item profile-stat-item--clickable" onClick={handleOpenFollowing}>
               <div className="profile-stat-number">{liveStats?.following || 0}</div>
               <div className="profile-stat-label">Siguiendo</div>
             </div>
@@ -461,7 +481,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                   })}
                 </div>
 
-                
+
                 <div className="profile-upload-section">
                   <div className="profile-upload-icon"><Upload size={32} /></div>
                   <h3 className="profile-upload-title">Sube tus diseños</h3>
@@ -485,6 +505,85 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
           </div>
         </div>
       </div>
+
+      {/* Modal de Siguiendo */}
+      {followingModalOpen && (
+        <div
+          className="following-modal-backdrop"
+          onClick={() => setFollowingModalOpen(false)}
+        >
+          <div
+            className="following-modal"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="following-modal-header">
+              <h3 className="following-modal-title">Siguiendo</h3>
+              <button
+                className="following-modal-close"
+                onClick={() => setFollowingModalOpen(false)}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="following-modal-body">
+              {isLoadingFollowing ? (
+                <div className="following-modal-loading">
+                  <div className="spinner"></div>
+                  <p>Cargando...</p>
+                </div>
+              ) : followingList.length === 0 ? (
+                <div className="following-modal-empty">
+                  <Users size={48} color="#d1d5db" />
+                  <p>Aún no sigues a nadie</p>
+                </div>
+              ) : (
+                <ul className="following-list">
+                  {followingList.map((user) => {
+                    const avatar =
+                      user.foto_perfil ||
+                      user.avatarImage ||
+                      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100';
+                    const name =
+                      user.nombre_usuario || user.name || 'Usuario';
+                    const username =
+                      user.username || '@' + name.toLowerCase().replace(/\s+/g, '');
+                    return (
+                      <li key={user.id_usuario || user.id} className="following-list-item">
+                        <img
+                          src={avatar}
+                          alt={name}
+                          className="following-avatar"
+                          onError={e => {
+                            e.target.src =
+                              'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100';
+                          }}
+                        />
+                        <div className="following-user-info">
+                          <span className="following-user-name">{name}</span>
+                          <span className="following-user-username">{username}</span>
+                        </div>
+                        <button
+                          className="following-visit-btn"
+                          onClick={() => {
+                            setFollowingModalOpen(false);
+                            if (typeof onBack === 'function') {
+                              // Navega al perfil pasando el usuario seleccionado
+                              onBack(user);
+                            }
+                          }}
+                        >
+                          Ver perfil
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* File input oculto — dispara el ShareDesignModal */}
       <input
