@@ -758,6 +758,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
         ref={uploadInputRef}
         type="file"
         accept="image/*"
+        multiple
         style={{ display: 'none' }}
         onChange={handleFileSelected}
       />
