@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowLeft, Settings, MapPin, Calendar, Users, Heart, MessageCircle, Camera, Edit2, Upload, Plus, Image, FileText, X, Save, Trash2, LogOut } from 'lucide-react';
 import './UserProfile.css';
 import ShareDesignModal from './ShareDesignModal';
+import DesignCarousel from './DesignCarousel';
+import DesignModal from './DesignModal';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
@@ -378,8 +380,10 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
   const handleEditDraft = (design) => { if (onOpenWorkspace) onOpenWorkspace(design); };
   const currentDesigns = activeTab === 'public' ? publicDesigns : privateDesigns;
 
-  const resolveImageUrl = (design) => {
-    const raw = design.imagen || design.imagen_url || design.image || design.url || '';
+  const resolveImageUrl = (rawOrDesign) => {
+    const raw = typeof rawOrDesign === 'string'
+      ? rawOrDesign
+      : (rawOrDesign?.imagen || rawOrDesign?.imagen_url || rawOrDesign?.image || rawOrDesign?.url || '');
     if (!raw) return null;
     if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) return raw;
     return `${API_URL}${raw.startsWith('/') ? '' : '/'}${raw}`;
@@ -536,7 +540,6 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
               <>
                 <div className="profile-designs-grid">
                   {currentDesigns.map((design) => {
-                    const imgSrc = resolveImageUrl(design);
                     const isPrivate = activeTab === 'private';
                     return (
                       <div
@@ -546,13 +549,12 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                         style={{ cursor: 'pointer' }}
                         title={isPrivate ? 'Haz clic para editar en Workspace' : 'Ver likes y comentarios'}
                       >
-                        {imgSrc ? (
-                          <img src={imgSrc} alt={design.titulo || 'Diseño'} className="profile-design-image"
-                            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling && (e.target.nextSibling.style.display = 'flex'); }} />
-                        ) : null}
-                        <div className="profile-design-placeholder" style={{ display: imgSrc ? 'none' : 'flex' }}>
-                          <FileText size={40} color="#d1d5db" /><span>{design.titulo || 'Sin imagen'}</span>
-                        </div>
+                        <DesignCarousel
+                          design={design}
+                          resolveUrl={resolveImageUrl}
+                          className="profile-design-image"
+                          placeholderCls="profile-design-placeholder"
+                        />
                         <div className="profile-design-overlay">
                           {isPrivate && <div className="profile-design-edit-badge"><Edit2 size={14} /><span>Editar en Workspace</span></div>}
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
@@ -771,71 +773,19 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
 
       {/* Modal de diseño propio (likes y comentarios) */}
       {selectedDesign && (
-        <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}
-          onClick={() => setSelectedDesign(null)}
-        >
-          <div
-            style={{ background: 'white', borderRadius: '1rem', maxWidth: '800px', width: '100%', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div style={{ position: 'relative', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', maxHeight: '450px', overflow: 'hidden' }}>
-              <img src={resolveImageUrl(selectedDesign)} alt={selectedDesign.titulo}
-                style={{ width: '100%', height: 'auto', maxHeight: '450px', objectFit: 'contain', display: 'block' }} />
-              <button onClick={() => setSelectedDesign(null)}
-                style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <X size={18} />
-              </button>
-            </div>
-
-            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid #f3f4f6' }}>
-              <h3 style={{ margin: '0 0 0.4rem', fontSize: '1.1rem', fontWeight: '700', color: '#1f2937' }}>
-                {selectedDesign.titulo}
-              </h3>
-              {selectedDesign.descripcion && selectedDesign.descripcion !== 'Compartido desde Éclat' && (
-                <p style={{ margin: '0 0 0.875rem', fontSize: '0.9rem', color: '#6b7280', lineHeight: '1.5' }}>
-                  {selectedDesign.descripcion}
-                </p>
-              )}
-              <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                <button onClick={handleToggleLike} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', color: modalLikes.liked ? '#ef4444' : '#6b7280', fontWeight: '600', fontSize: '1rem' }}>
-                  <Heart size={22} fill={modalLikes.liked ? '#ef4444' : 'none'} />{modalLikes.total}
-                </button>
-                <span style={{ color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <MessageCircle size={22} />{modalComments.length}
-                </span>
-              </div>
-            </div>
-
-            <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 1.5rem' }}>
-              <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem' }}>
-                <input type="text" value={newComment} onChange={e => setNewComment(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handlePostComment()}
-                  placeholder="Escribe un comentario..."
-                  style={{ flex: 1, padding: '0.6rem 1rem', border: '1px solid #e5e7eb', borderRadius: '2rem', outline: 'none', fontSize: '0.9rem' }} />
-                <button onClick={handlePostComment} disabled={isPostingComment || !newComment.trim()}
-                  style={{ padding: '0.6rem 1.2rem', background: '#9333ea', color: 'white', border: 'none', borderRadius: '2rem', cursor: 'pointer', opacity: (!newComment.trim() || isPostingComment) ? 0.5 : 1 }}>
-                  Enviar
-                </button>
-              </div>
-
-              {modalComments.length === 0 ? (
-                <p style={{ textAlign: 'center', color: '#9ca3af' }}>Sin comentarios aún. ¡Sé el primero!</p>
-              ) : modalComments.map(c => (
-                <div key={c.id_comentario} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem' }}>
-                  <img src={c.usuario?.foto_perfil || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'}
-                    alt={c.usuario?.nombre_usuario}
-                    style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
-                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'; }} />
-                  <div>
-                    <p style={{ margin: 0, fontWeight: '600', fontSize: '0.85rem' }}>{c.usuario?.nombre_usuario}</p>
-                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.9rem', color: '#374151' }}>{c.contenido}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <DesignModal
+          design={selectedDesign}
+          resolveUrl={resolveImageUrl}
+          likes={modalLikes}
+          comments={modalComments}
+          newComment={newComment}
+          isPostingComment={isPostingComment}
+          canComment={true}
+          onClose={() => setSelectedDesign(null)}
+          onToggleLike={handleToggleLike}
+          onCommentChange={setNewComment}
+          onPostComment={handlePostComment}
+        />
       )}
     </div>
   );

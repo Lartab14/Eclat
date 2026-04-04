@@ -17,6 +17,8 @@ module.exports = {
         return {
           id: design.id_diseño,
           image: design.archivos[0]?.ruta_archivo,
+          imagenes: design.archivos.map(a => a.ruta_archivo).filter(Boolean),
+          tipo_diseño: design.tipo_diseño || 'imagen',
           title: design.titulo || 'Sin título',
           author: '@' + design.usuario.nombre_usuario.toLowerCase().replace(/\s+/g, ''),
           category: design.visibilidad === 'destacado' ? 'Destacado' :
@@ -181,6 +183,8 @@ module.exports = {
         descripcion: diseño.descripcion || '',
         imagen: diseño.archivos[0]?.ruta_archivo || '',
         imagen_url: diseño.archivos[0]?.ruta_archivo || '',
+        imagenes: diseño.archivos.map(a => a.ruta_archivo).filter(Boolean),
+        tipo_diseño: diseño.tipo_diseño || 'imagen',
         visibilidad: diseño.visibilidad,
         status: diseño.visibilidad === 'publico' ? 'Público' : 'Privado',
         likes: diseño.likes?.length || 0,

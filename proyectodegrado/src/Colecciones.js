@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Search, User, Users, Heart, MessageCircle, X } from 'lucide-react';
 import SearchBar from './Searchbar';
+import DesignCarousel from './DesignCarousel';
+import DesignModal from './DesignModal';
 import './Colecciones.css';
 
 import LogoEclat from './img/LogoEclat.png';
@@ -48,8 +50,10 @@ export default function Colecciones({
     } finally { setIsLoading(false); }
   };
 
-  const resolveImageUrl = (item) => {
-    const raw = item.imagen || item.imagen_url || item.image || item.url || '';
+  const resolveImageUrl = (rawOrItem) => {
+    const raw = typeof rawOrItem === 'string'
+      ? rawOrItem
+      : (rawOrItem?.imagen || rawOrItem?.imagen_url || rawOrItem?.image || rawOrItem?.url || '');
     if (!raw) return null;
     if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) return raw;
     return `${API_URL}${raw.startsWith('/') ? '' : '/'}${raw}`;
@@ -196,15 +200,12 @@ export default function Colecciones({
                 <div key={item.id} className="masonry-item" onClick={() => handleOpenModal(item)} style={{ cursor: 'pointer' }}>
                   {item.category && <span className="category-badge">{item.category}</span>}
                   <div className="item-image-wrapper">
-                    {item.image ? (
-                      <img src={item.image} alt={item.title} className="item-image"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                          const p = document.createElement('div');
-                          p.className = 'item-placeholder'; p.textContent = '🎨';
-                          e.target.parentElement.appendChild(p);
-                        }} />
-                    ) : (<div className="item-placeholder">🎨</div>)}
+                    <DesignCarousel
+                      design={item}
+                      resolveUrl={resolveImageUrl}
+                      className="item-image"
+                      placeholderCls="item-placeholder"
+                    />
                     <div className="item-overlay">
                       <div className="item-info">
                         <h3 className="item-title">{item.title}</h3>
@@ -273,50 +274,19 @@ export default function Colecciones({
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       {selectedItem && (
-        <div className="col-modal-backdrop" onClick={() => { setSelectedItem(null); setNewComment(''); }}>
-          <div className="col-modal" onClick={e => e.stopPropagation()}>
-            <div className="col-modal-image-wrap">
-              <img src={resolveImageUrl(selectedItem) || selectedItem.image} alt={selectedItem.titulo || selectedItem.title} className="col-modal-image" />
-              <button className="col-modal-close" onClick={() => { setSelectedItem(null); setNewComment(''); }}><X size={18} /></button>
-            </div>
-            <div className="col-modal-body">
-              <div className="col-modal-header">
-                <h3 className="col-modal-title">{selectedItem.titulo || selectedItem.title}</h3>
-                {selectedItem.author && <p className="col-modal-author">por {selectedItem.author}</p>}
-                {selectedItem.descripcion && selectedItem.descripcion !== 'Compartido desde Éclat' && (
-                  <p className="col-modal-desc">{selectedItem.descripcion}</p>
-                )}
-              </div>
-              <div className="col-modal-actions">
-                <button className={`col-modal-like-btn ${modalLikes.liked ? 'liked' : ''}`} onClick={handleToggleLike}>
-                  <Heart size={20} fill={modalLikes.liked ? '#ef4444' : 'none'} /><span>{modalLikes.total}</span>
-                </button>
-                <span className="col-modal-comments-count"><MessageCircle size={20} /><span>{modalComments.length}</span></span>
-              </div>
-              <div className="col-modal-comments">
-                <div className="col-modal-comment-input-row">
-                  <input type="text" className="col-modal-comment-input" placeholder="Escribe un comentario..."
-                    value={newComment} onChange={e => setNewComment(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handlePostComment()} />
-                  <button className="col-modal-comment-send" onClick={handlePostComment} disabled={isPostingComment || !newComment.trim()}>Enviar</button>
-                </div>
-                {modalComments.length === 0 ? (
-                  <p className="col-modal-no-comments">Sin comentarios aún. ¡Sé el primero!</p>
-                ) : modalComments.map(c => (
-                  <div key={c.id_comentario} className="col-modal-comment-item">
-                    <img src={c.usuario?.foto_perfil || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'}
-                      alt={c.usuario?.nombre_usuario} className="col-modal-comment-avatar"
-                      onError={e => { e.target.src = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'; }} />
-                    <div>
-                      <p className="col-modal-comment-user">{c.usuario?.nombre_usuario}</p>
-                      <p className="col-modal-comment-text">{c.contenido}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        <DesignModal
+          design={selectedItem}
+          resolveUrl={resolveImageUrl}
+          likes={modalLikes}
+          comments={modalComments}
+          newComment={newComment}
+          isPostingComment={isPostingComment}
+          canComment={!!userData?.id_usuario}
+          onClose={() => { setSelectedItem(null); setNewComment(''); }}
+          onToggleLike={handleToggleLike}
+          onCommentChange={setNewComment}
+          onPostComment={handlePostComment}
+        />
       )}
     </div>
   );

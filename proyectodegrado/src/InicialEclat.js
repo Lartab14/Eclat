@@ -5,6 +5,8 @@ import {
 } from 'lucide-react';
 import './InicialEclat.css';
 import ShareDesignModal from './ShareDesignModal';
+import DesignCarousel from './DesignCarousel';
+import DesignModal from './DesignModal';
 // Importar imágenes
 import Eclat from './img/Eclat.png';
 import LogoEclat from './img/LogoEclat.png';
@@ -227,8 +229,10 @@ export default function InicialEclat({
   };
 
   // ── Resolver URL de imagen ─────────────────────────────────
-  const resolveImageUrl = (design) => {
-    const raw = design.imagen || design.imagen_url || design.image || design.url || '';
+  const resolveImageUrl = (rawOrDesign) => {
+    const raw = typeof rawOrDesign === 'string'
+      ? rawOrDesign
+      : (rawOrDesign?.imagen || rawOrDesign?.imagen_url || rawOrDesign?.image || rawOrDesign?.url || '');
     if (!raw) return null;
     if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) return raw;
     return `${API_URL}${raw.startsWith('/') ? '' : '/'}${raw}`;
@@ -852,19 +856,12 @@ export default function InicialEclat({
                     style={{ cursor: 'pointer' }}
                   >
                     <div className="featured-image">
-                      {design.image ? (
-                        <img
-                          src={design.image}
-                          alt={design.title}
-                          className="featured-design-image"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            e.target.parentElement.innerHTML += '<div class="image-placeholder">🎨</div>';
-                          }}
-                        />
-                      ) : (
-                        <div className="image-placeholder">🎨</div>
-                      )}
+                      <DesignCarousel
+                        design={design}
+                        resolveUrl={resolveImageUrl}
+                        className="featured-design-image"
+                        placeholderCls="image-placeholder"
+                      />
                       {/* Stats en hover */}
                       <div className="featured-image-overlay">
                         <span className="featured-stat-chip"><Heart size={14} fill="white" />{design.likes || 0}</span>
@@ -952,96 +949,19 @@ export default function InicialEclat({
 
       {/* ── Modal de diseño destacado ──────────────────────── */}
       {selectedDesign && (
-        <div
-          className="col-modal-backdrop"
-          onClick={() => { setSelectedDesign(null); setNewComment(''); }}
-        >
-          <div className="col-modal" onClick={e => e.stopPropagation()}>
-
-            {/* Imagen */}
-            <div className="col-modal-image-wrap">
-              <img
-                src={resolveImageUrl(selectedDesign) || selectedDesign.image}
-                alt={selectedDesign.titulo || selectedDesign.title}
-                className="col-modal-image"
-              />
-              <button
-                className="col-modal-close"
-                onClick={() => { setSelectedDesign(null); setNewComment(''); }}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Info + interacciones */}
-            <div className="col-modal-body">
-              <div className="col-modal-header">
-                <h3 className="col-modal-title">
-                  {selectedDesign.titulo || selectedDesign.title}
-                </h3>
-                {selectedDesign.author && (
-                  <p className="col-modal-author">por {selectedDesign.author}</p>
-                )}
-                {selectedDesign.descripcion && selectedDesign.descripcion !== 'Compartido desde Éclat' && (
-                  <p className="col-modal-desc">{selectedDesign.descripcion}</p>
-                )}
-              </div>
-
-              <div className="col-modal-actions">
-                <button
-                  className={`col-modal-like-btn ${modalLikes.liked ? 'liked' : ''}`}
-                  onClick={handleToggleLike}
-                >
-                  <Heart size={20} fill={modalLikes.liked ? '#ef4444' : 'none'} />
-                  <span>{modalLikes.total}</span>
-                </button>
-                <span className="col-modal-comments-count">
-                  <MessageCircle size={20} />
-                  <span>{modalComments.length}</span>
-                </span>
-              </div>
-
-              <div className="col-modal-comments">
-                <div className="col-modal-comment-input-row">
-                  <input
-                    type="text"
-                    className="col-modal-comment-input"
-                    placeholder="Escribe un comentario..."
-                    value={newComment}
-                    onChange={e => setNewComment(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handlePostComment()}
-                  />
-                  <button
-                    className="col-modal-comment-send"
-                    onClick={handlePostComment}
-                    disabled={isPostingComment || !newComment.trim()}
-                  >
-                    Enviar
-                  </button>
-                </div>
-
-                {modalComments.length === 0 ? (
-                  <p className="col-modal-no-comments">Sin comentarios aún. ¡Sé el primero!</p>
-                ) : (
-                  modalComments.map(c => (
-                    <div key={c.id_comentario} className="col-modal-comment-item">
-                      <img
-                        src={c.usuario?.foto_perfil || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'}
-                        alt={c.usuario?.nombre_usuario}
-                        className="col-modal-comment-avatar"
-                        onError={e => { e.target.src = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100'; }}
-                      />
-                      <div>
-                        <p className="col-modal-comment-user">{c.usuario?.nombre_usuario}</p>
-                        <p className="col-modal-comment-text">{c.contenido}</p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+        <DesignModal
+          design={selectedDesign}
+          resolveUrl={resolveImageUrl}
+          likes={modalLikes}
+          comments={modalComments}
+          newComment={newComment}
+          isPostingComment={isPostingComment}
+          canComment={!!userData?.id_usuario}
+          onClose={() => { setSelectedDesign(null); setNewComment(''); }}
+          onToggleLike={handleToggleLike}
+          onCommentChange={setNewComment}
+          onPostComment={handlePostComment}
+        />
       )}
     </div>
   );

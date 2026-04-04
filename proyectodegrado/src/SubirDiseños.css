@@ -606,8 +606,8 @@
     overflow-y: auto;
 }
 
-.publish-modal-post-block {}
-
+/*.publish-modal-post-block {}
+*/
 .publish-modal-post-label {
     display: flex;
     align-items: center;
