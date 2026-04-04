@@ -939,13 +939,6 @@ export default function InicialEclat({
           </div>
           <div className="footer-bottom">
             <p className="footer-copy">© 2026 Éclat. Todos los dereccios reservados.</p>
-            <div className="footer-links">
-              <a href="#">Términos</a>
-              <span className="footer-dot">·</span>
-              <a href="#">Privacidad</a>
-              <span className="footer-dot">·</span>
-              <a href="#">Cookies</a>
-            </div>
           </div>
         </div>
       </footer>

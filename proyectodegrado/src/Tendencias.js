@@ -771,13 +771,6 @@ export default function Tendencias({
                     {/* Bottom */}
                     <div className="footer-bottom">
                         <p className="footer-copy">© 2026 Éclat. Todos los derechos reservados.</p>
-                        <div className="footer-links">
-                            <a href="#">Términos</a>
-                            <span className="footer-dot">·</span>
-                            <a href="#">Privacidad</a>
-                            <span className="footer-dot">·</span>
-                            <a href="#">Cookies</a>
-                        </div>
                     </div>
 
                 </div>
