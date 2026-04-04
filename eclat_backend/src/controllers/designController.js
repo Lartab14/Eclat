@@ -15,13 +15,13 @@ module.exports = {
         console.log(`   Diseño: ${design.titulo || 'Sin título'}`);
 
         return {
-          id: design.id_diseño,                          
+          id: design.id_diseño,
           image: design.archivos[0]?.ruta_archivo,
           title: design.titulo || 'Sin título',
           author: '@' + design.usuario.nombre_usuario.toLowerCase().replace(/\s+/g, ''),
           category: design.visibilidad === 'destacado' ? 'Destacado' :
             (design.likes?.length > 50 ? 'Popular' : null),
-          likes: design.likes?.length || 0,              
+          likes: design.likes?.length || 0,
           views: Math.floor(Math.random() * 3000) + 500
         };
       });
@@ -88,7 +88,7 @@ module.exports = {
     }
   },
 
-//MÉTODOS PARA GESTIÓN DE IMÁGENES
+  //MÉTODOS PARA GESTIÓN DE IMÁGENES
 
   async crearDiseñoConArchivo(req, res) {
     try {
@@ -129,8 +129,8 @@ module.exports = {
         where: { id_diseño: diseño.id_diseño },
         include: {
           archivos: true,
-          likes: true,      
-          comentarios: true, 
+          likes: true,
+          comentarios: true,
           usuario: {
             select: { id_usuario: true, nombre_usuario: true, foto_perfil: true }
           }
@@ -164,8 +164,8 @@ module.exports = {
         where: whereClause,
         include: {
           archivos: true,
-          likes: true,        
-          comentarios: true,  
+          likes: true,
+          comentarios: true,
           usuario: {
             select: { id_usuario: true, nombre_usuario: true, foto_perfil: true }
           }
@@ -305,8 +305,8 @@ module.exports = {
         where: { id_diseño: Number(id) },
         include: {
           archivos: true,
-          likes: true,        
-          comentarios: true,  
+          likes: true,
+          comentarios: true,
           usuario: {
             select: { id_usuario: true, nombre_usuario: true, foto_perfil: true }
           }
@@ -319,6 +319,75 @@ module.exports = {
     } catch (error) {
       console.error("❌ Error al actualizar diseño:", error);
       res.status(500).json({ success: false, error: "Error al actualizar el diseño", detalle: error.message });
+    }
+  },
+
+  async crearCarrusel(req, res) {
+    try {
+      const { id_usuario, titulo, descripcion, tipo_diseño, visibilidad, imagenes } = req.body;
+
+      console.log("🎠 Creando carrusel:", { id_usuario, titulo, visibilidad, totalImagenes: imagenes?.length });
+
+      // Validaciones
+      if (!id_usuario)
+        return res.status(400).json({ error: "El id_usuario es obligatorio" });
+      if (!imagenes || !Array.isArray(imagenes) || imagenes.length < 2)
+        return res.status(400).json({ error: "Un carrusel necesita al menos 2 imágenes" });
+
+      const usuarioExiste = await prisma.usuario.findUnique({
+        where: { id_usuario: Number(id_usuario) },
+      });
+      if (!usuarioExiste)
+        return res.status(404).json({ error: "Usuario no encontrado" });
+
+      // 1. Crear el diseño
+      const diseño = await prisma.diseño.create({
+        data: {
+          id_usuario: Number(id_usuario),
+          titulo: titulo || "Sin título",
+          descripcion: descripcion || "",
+          tipo_diseño: tipo_diseño || "carrusel",
+          visibilidad: visibilidad || "publico",
+        },
+      });
+
+      // 2. Crear un archivoDiseño por cada URL — en paralelo
+      await Promise.all(
+        imagenes.map((url, index) =>
+          prisma.archivoDiseño.create({
+            data: {
+              id_diseño: diseño.id_diseño,
+              ruta_archivo: url,
+              formato: url.split(".").pop().split("?")[0] || "jpg",
+              // orden se puede guardar en el nombre o en un campo extra si lo tienes
+            },
+          })
+        )
+      );
+
+      console.log(`✅ Carrusel creado: diseño ${diseño.id_diseño} con ${imagenes.length} imágenes`);
+
+      // 3. Devolver el diseño completo con sus archivos
+      const diseñoCompleto = await prisma.diseño.findUnique({
+        where: { id_diseño: diseño.id_diseño },
+        include: {
+          archivos: true,
+          likes: true,
+          comentarios: true,
+          usuario: {
+            select: { id_usuario: true, nombre_usuario: true, foto_perfil: true },
+          },
+        },
+      });
+
+      res.status(201).json({
+        success: true,
+        mensaje: "Carrusel creado exitosamente",
+        diseño: diseñoCompleto,
+      });
+    } catch (error) {
+      console.error("❌ Error al crear carrusel:", error);
+      res.status(500).json({ error: "Error al crear el carrusel", detalle: error.message });
     }
   }
 };

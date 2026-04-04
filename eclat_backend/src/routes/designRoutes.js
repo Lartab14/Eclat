@@ -48,4 +48,6 @@ router.delete("/remove/:id_diseño", designController.eliminarDiseño);
 // PATCH /api/designs/1/visibilidad
 router.patch("/:id_diseño/visibilidad", designController.cambiarVisibilidad);
 
+router.post("/with-carousel", designController.crearCarrusel);
+
 module.exports = router;

@@ -1,102 +1,68 @@
 import React, { useRef, useState, useCallback } from 'react';
 import {
   ArrowLeft, Upload, Image, Plus, CheckCircle, X,
-  FileText, ChevronLeft, ChevronRight, Layers, Grid, Trash2
+  FileText, ChevronLeft, ChevronRight, Layers, Grid,
+  Trash2, Globe, Lock
 } from 'lucide-react';
 import './SubirDiseños.css';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
-/* ─────────────────────────────────────────────────────────
-   Genera un id único para cada post/carrusel local
-───────────────────────────────────────────────────────── */
 let _nextId = 1;
 const uid = () => `post_${_nextId++}`;
 
 /* ─────────────────────────────────────────────────────────
-   Mini carrusel de preview (navegación entre slides)
+   Mini carrusel de preview
 ───────────────────────────────────────────────────────── */
-function CarouselPreview({ images, onRemoveImage, onRemovePost, postIndex, totalPosts }) {
+function CarouselPreview({ images, onRemoveImage, onRemovePost }) {
   const [current, setCurrent] = useState(0);
   const count = images.length;
+  const safeIdx = Math.min(current, count - 1);
 
   const prev = (e) => { e.stopPropagation(); setCurrent(i => (i - 1 + count) % count); };
   const next = (e) => { e.stopPropagation(); setCurrent(i => (i + 1) % count); };
 
   return (
     <div className="carousel-card">
-      {/* Badge tipo de post */}
       <div className={`carousel-type-badge ${count > 1 ? 'carousel-type-badge--multi' : ''}`}>
         {count > 1 ? <><Layers size={11} />{count} fotos</> : <><Image size={11} />Foto</>}
       </div>
 
-      {/* Imagen activa */}
       <div className="carousel-image-wrap">
-        <img
-          src={images[current].preview}
-          alt={images[current].name}
-          className="profile-design-image"
-        />
+        <img src={images[safeIdx].preview} alt={images[safeIdx].name} className="profile-design-image" />
 
-        {/* Overlay con acciones */}
         <div className="profile-design-overlay">
-          {/* Botón eliminar post completo */}
-          <button
-            className="subir-remove-btn carousel-remove-post-btn"
-            onClick={e => { e.stopPropagation(); onRemovePost(); }}
-            title="Eliminar este post"
-          >
+          <button className="subir-remove-btn" onClick={e => { e.stopPropagation(); onRemovePost(); }} title="Eliminar post">
             <Trash2 size={14} />
           </button>
-
-          {/* Info de la imagen actual */}
           <div className="subir-preview-info">
-            <p className="subir-preview-name">{images[current].name}</p>
-            <p className="subir-preview-size">{images[current].size} MB</p>
+            <p className="subir-preview-name">{images[safeIdx].name}</p>
+            <p className="subir-preview-size">{images[safeIdx].size} MB</p>
           </div>
         </div>
 
-        {/* Controles de navegación — solo si hay más de 1 imagen */}
         {count > 1 && (
           <>
-            <button className="carousel-nav carousel-nav--prev" onClick={prev}>
-              <ChevronLeft size={16} />
-            </button>
-            <button className="carousel-nav carousel-nav--next" onClick={next}>
-              <ChevronRight size={16} />
-            </button>
-
-            {/* Dots */}
+            <button className="carousel-nav carousel-nav--prev" onClick={prev}><ChevronLeft size={16} /></button>
+            <button className="carousel-nav carousel-nav--next" onClick={next}><ChevronRight size={16} /></button>
             <div className="carousel-dots">
               {images.map((_, i) => (
-                <button
-                  key={i}
-                  className={`carousel-dot ${i === current ? 'carousel-dot--active' : ''}`}
-                  onClick={e => { e.stopPropagation(); setCurrent(i); }}
-                />
+                <button key={i} className={`carousel-dot ${i === safeIdx ? 'carousel-dot--active' : ''}`}
+                  onClick={e => { e.stopPropagation(); setCurrent(i); }} />
               ))}
             </div>
           </>
         )}
       </div>
 
-      {/* Thumbnails strip — solo si hay más de 1 imagen */}
       {count > 1 && (
         <div className="carousel-thumbs">
           {images.map((img, i) => (
-            <div
-              key={i}
-              className={`carousel-thumb-wrap ${i === current ? 'carousel-thumb-wrap--active' : ''}`}
-              onClick={() => setCurrent(i)}
-            >
+            <div key={i} className={`carousel-thumb-wrap ${i === safeIdx ? 'carousel-thumb-wrap--active' : ''}`}
+              onClick={() => setCurrent(i)}>
               <img src={img.preview} alt={img.name} className="carousel-thumb" />
-              <button
-                className="carousel-thumb-remove"
-                onClick={e => { e.stopPropagation(); onRemoveImage(i); }}
-                title="Quitar imagen"
-              >
-                <X size={10} />
-              </button>
+              <button className="carousel-thumb-remove"
+                onClick={e => { e.stopPropagation(); onRemoveImage(i); }}><X size={10} /></button>
             </div>
           ))}
         </div>
@@ -106,161 +72,233 @@ function CarouselPreview({ images, onRemoveImage, onRemovePost, postIndex, total
 }
 
 /* ─────────────────────────────────────────────────────────
+   Modal de publicación
+───────────────────────────────────────────────────────── */
+function PublishModal({ posts, onConfirm, onCancel, isUploading }) {
+  const [forms, setForms] = useState(() =>
+    posts.map(p => ({ id: p.id, titulo: '', descripcion: '', visibilidad: 'public' }))
+  );
+  const [error, setError] = useState('');
+
+  const update = (postId, field, value) =>
+    setForms(prev => prev.map(f => f.id === postId ? { ...f, [field]: value } : f));
+
+  const handleSubmit = () => {
+    if (forms.find(f => !f.titulo.trim())) { setError('Todos los posts necesitan un título.'); return; }
+    setError('');
+    onConfirm(forms);
+  };
+
+  return (
+    <div className="publish-modal-backdrop" onClick={onCancel}>
+      <div className="publish-modal" onClick={e => e.stopPropagation()}>
+
+        <div className="publish-modal-header">
+          <h2 className="publish-modal-title">
+            {posts.length === 1 ? 'Detalles del post' : `Detalles de ${posts.length} posts`}
+          </h2>
+          <button className="publish-modal-close" onClick={onCancel}><X size={22} /></button>
+        </div>
+
+        <div className="publish-modal-body">
+          {forms.map((form, idx) => {
+            const post = posts.find(p => p.id === form.id);
+            const isCarousel = post?.images.length > 1;
+
+            return (
+              <div key={form.id} className="publish-modal-post-block">
+                {posts.length > 1 && (
+                  <p className="publish-modal-post-label">
+                    Post {idx + 1}
+                    {isCarousel && <span className="publish-modal-carousel-tag"><Layers size={11} /> Carrusel</span>}
+                  </p>
+                )}
+
+                <div className="publish-modal-row">
+                  <div className="publish-modal-thumb">
+                    {post?.images[0] && <img src={post.images[0].preview} alt="" />}
+                    {isCarousel && <span className="publish-modal-thumb-count">+{post.images.length - 1}</span>}
+                  </div>
+
+                  <div className="publish-modal-fields">
+                    <input className="publish-modal-input" type="text"
+                      placeholder="Título del diseño *"
+                      value={form.titulo} onChange={e => update(form.id, 'titulo', e.target.value)}
+                      maxLength={100} />
+                    <textarea className="publish-modal-textarea" placeholder="Descripción (opcional)..."
+                      value={form.descripcion} onChange={e => update(form.id, 'descripcion', e.target.value)}
+                      rows={2} maxLength={500} />
+                    <div className="publish-modal-visibility">
+                      <button type="button"
+                        className={`publish-vis-btn ${form.visibilidad === 'public' ? 'active' : ''}`}
+                        onClick={() => update(form.id, 'visibilidad', 'public')}>
+                        <Globe size={14} /> Público
+                      </button>
+                      <button type="button"
+                        className={`publish-vis-btn ${form.visibilidad === 'private' ? 'active' : ''}`}
+                        onClick={() => update(form.id, 'visibilidad', 'private')}>
+                        <Lock size={14} /> Privado
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {idx < forms.length - 1 && <div className="publish-modal-divider" />}
+              </div>
+            );
+          })}
+
+          {error && <p className="publish-modal-error">⚠️ {error}</p>}
+        </div>
+
+        <div className="publish-modal-footer">
+          <button className="publish-modal-cancel" onClick={onCancel} disabled={isUploading}>Cancelar</button>
+          <button className="publish-modal-confirm" onClick={handleSubmit} disabled={isUploading}>
+            {isUploading
+              ? <><div className="spinner-small" /> Publicando...</>
+              : <><Upload size={16} /> Publicar {posts.length > 1 ? `${posts.length} posts` : 'post'}</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
    Componente principal
 ───────────────────────────────────────────────────────── */
 function SubirDiseños({ onBack, userData, onOpenWorkspace }) {
   const uploadInputRef = useRef(null);
-  const addToPostRef = useRef(null);       // input para añadir fotos a un post existente
+  const addToPostRef = useRef(null);
 
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-
-  /*
-    posts: Array de { id, images: [{ file, name, preview, size }] }
-    Cada elemento es un post independiente (puede ser carrusel o imagen individual).
-  */
+  const [showModal, setShowModal] = useState(false);
   const [posts, setPosts] = useState([]);
-  const [targetPostId, setTargetPostId] = useState(null); // id del post al que se añadirán imgs
+  const [targetPostId, setTargetPostId] = useState(null);
 
-  /* ── Helpers ── */
   const buildItems = (files) =>
-    Array.from(files).map((file) => ({
-      file,
-      name: file.name,
+    Array.from(files).map(file => ({
+      file, name: file.name,
       preview: URL.createObjectURL(file),
       size: (file.size / 1024 / 1024).toFixed(2),
     }));
 
-  /* Añadir archivos como posts individuales (comportamiento por defecto) */
   const addAsSeparatePosts = useCallback((files) => {
-    const newPosts = Array.from(files).map((file) => ({
+    setPosts(prev => [...prev, ...Array.from(files).map(file => ({
       id: uid(),
-      images: [buildItems([file])[0]],
-    }));
-    setPosts((prev) => [...prev, ...newPosts]);
+      images: [{ file, name: file.name, preview: URL.createObjectURL(file), size: (file.size / 1024 / 1024).toFixed(2) }],
+    }))]);
   }, []);
 
-  /* Añadir archivos como un único carrusel nuevo */
   const addAsCarousel = useCallback((files) => {
     if (!files.length) return;
-    const newPost = { id: uid(), images: buildItems(files) };
-    setPosts((prev) => [...prev, newPost]);
+    setPosts(prev => [...prev, { id: uid(), images: buildItems(files) }]);
   }, []);
 
-  /* Añadir imágenes a un post existente (ampliar carrusel) */
   const addImagesToPost = useCallback((postId, files) => {
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === postId
-          ? { ...p, images: [...p.images, ...buildItems(files)] }
-          : p
-      )
-    );
+    setPosts(prev => prev.map(p => p.id === postId ? { ...p, images: [...p.images, ...buildItems(files)] } : p));
   }, []);
 
-  /* Eliminar una imagen de un post; si queda vacío, elimina el post */
   const removeImageFromPost = useCallback((postId, imgIndex) => {
-    setPosts((prev) =>
-      prev
-        .map((p) =>
-          p.id === postId
-            ? { ...p, images: p.images.filter((_, i) => i !== imgIndex) }
-            : p
-        )
-        .filter((p) => p.images.length > 0)
-    );
+    setPosts(prev => prev.map(p => p.id === postId ? { ...p, images: p.images.filter((_, i) => i !== imgIndex) } : p)
+      .filter(p => p.images.length > 0));
   }, []);
 
-  /* Eliminar un post completo */
-  const removePost = useCallback((postId) => {
-    setPosts((prev) => prev.filter((p) => p.id !== postId));
-  }, []);
+  const removePost = useCallback((postId) => setPosts(prev => prev.filter(p => p.id !== postId)), []);
+  const mergeAllIntoCarousel = () => posts.length > 1 && setPosts([{ id: uid(), images: posts.flatMap(p => p.images) }]);
+  const splitAllPosts = () => setPosts(posts.flatMap(p => p.images.map(img => ({ id: uid(), images: [img] }))));
 
-  /* Fusionar todos los posts seleccionados en uno solo (carrusel) */
-  const mergeAllIntoCarousel = () => {
-    if (posts.length < 2) return;
-    const allImages = posts.flatMap((p) => p.images);
-    setPosts([{ id: uid(), images: allImages }]);
-  };
+  const handleDrop = (e) => { e.preventDefault(); setIsDragging(false); addAsSeparatePosts(e.dataTransfer.files); };
+  const handleInputChange = (e) => { addAsSeparatePosts(e.target.files); e.target.value = ''; };
+  const handleInputCarousel = (e) => { addAsCarousel(e.target.files); e.target.value = ''; };
+  const handleAddToPostInput = (e) => { if (targetPostId) { addImagesToPost(targetPostId, e.target.files); setTargetPostId(null); } e.target.value = ''; };
 
-  /* Separar todos los posts en imágenes individuales */
-  const splitAllPosts = () => {
-    const separated = posts.flatMap((p) =>
-      p.images.map((img) => ({ id: uid(), images: [img] }))
-    );
-    setPosts(separated);
-  };
+  const openAddToPost = (postId) => { setTargetPostId(postId); setTimeout(() => addToPostRef.current?.click(), 0); };
 
-  /* ── Drag & drop ── */
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    addAsSeparatePosts(e.dataTransfer.files);
-  };
-
-  /* ── Input changes ── */
-  const handleInputChange = (e) => {
-    addAsSeparatePosts(e.target.files);
-    e.target.value = '';
-  };
-
-  const handleInputCarousel = (e) => {
-    addAsCarousel(e.target.files);
-    e.target.value = '';
-  };
-
-  const handleAddToPostInput = (e) => {
-    if (targetPostId) {
-      addImagesToPost(targetPostId, e.target.files);
-      setTargetPostId(null);
-    }
-    e.target.value = '';
-  };
-
-  const openAddToPost = (postId) => {
-    setTargetPostId(postId);
-    setTimeout(() => addToPostRef.current?.click(), 0);
-  };
-
-  /* ── Publicar ── */
-  const handleSubmitUploads = async () => {
-    if (posts.length === 0) return;
+  /* ─────────────────────────────────────────────────────────
+     Publicar — mismo flujo de 3 pasos que ShareDesignModal
+     Paso 1: /upload/image      → Cloudinary → imageUrl
+     Paso 2: /designs/with-file  (1 img) o /designs/with-carousel (N imgs) → BD
+     Paso 3: /posts             → post público
+  ───────────────────────────────────────────────────────── */
+  const handleConfirmPublish = async (forms) => {
     setIsUploading(true);
-
     try {
-      for (const post of posts) {
-        if (post.images.length === 1) {
-          // Post de imagen individual — comportamiento original
-          const formData = new FormData();
-          formData.append('image', post.images[0].file);
-          if (userData?.id_usuario) formData.append('id_usuario', userData.id_usuario);
+      for (const form of forms) {
+        const post = posts.find(p => p.id === form.id);
+        if (!post) continue;
 
-          const res = await fetch(`${API_URL}/upload/image`, {
+        const visibilidad = form.visibilidad === 'public' ? 'publico' : 'privado';
+
+        // PASO 1 — subir cada imagen a Cloudinary
+        const imageUrls = [];
+        for (const img of post.images) {
+          const fd = new FormData();
+          fd.append('image', img.file);
+          const res = await fetch(`${API_URL}/upload/image`, { method: 'POST', body: fd });
+          if (!res.ok) throw new Error(`Error al subir imagen: ${img.name}`);
+          const data = await res.json();
+          imageUrls.push(data.imageUrl);
+        }
+
+        // PASO 2 — crear diseño en BD
+        let diseñoId = null;
+
+        if (imageUrls.length === 1) {
+          // Ruta existente — imagen individual
+          const res = await fetch(`${API_URL}/designs/with-file`, {
             method: 'POST',
-            body: formData,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id_usuario: userData.id_usuario,
+              titulo: form.titulo.trim(),
+              descripcion: form.descripcion || 'Compartido desde Éclat',
+              tipo_diseño: 'imagen',
+              visibilidad,
+              imagen_url: imageUrls[0],
+            }),
           });
-          if (!res.ok) throw new Error('Error al subir: ' + post.images[0].name);
+          if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || 'Error al crear diseño'); }
+          diseñoId = (await res.json()).diseño?.id_diseño;
+
         } else {
-          // Carrusel — enviar como FormData con múltiples imágenes
-          const formData = new FormData();
-          post.images.forEach((img) => formData.append('images', img.file));
-          if (userData?.id_usuario) formData.append('id_usuario', userData.id_usuario);
-
-          const res = await fetch(`${API_URL}/upload/carousel`, {
+          // Ruta nueva — carrusel (1 diseño + N archivoDiseño)
+          const res = await fetch(`${API_URL}/designs/with-carousel`, {
             method: 'POST',
-            body: formData,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id_usuario: userData.id_usuario,
+              titulo: form.titulo.trim(),
+              descripcion: form.descripcion || 'Compartido desde Éclat',
+              tipo_diseño: 'carrusel',
+              visibilidad,
+              imagenes: imageUrls,   // array de URLs de Cloudinary
+            }),
           });
-          if (!res.ok) throw new Error('Error al subir carrusel');
+          if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || 'Error al crear carrusel'); }
+          diseñoId = (await res.json()).diseño?.id_diseño;
+        }
+
+        // PASO 3 — crear post público
+        if (visibilidad === 'publico' && diseñoId) {
+          const res = await fetch(`${API_URL}/posts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id_usuario: userData.id_usuario, id_diseño: diseñoId, contenido: form.descripcion || form.titulo }),
+          });
+          if (!res.ok) console.warn('⚠️ Post no creado, pero diseño guardado.');
         }
       }
 
-      setUploadSuccess(true);
+      setShowModal(false);
       setPosts([]);
-      setTimeout(() => setUploadSuccess(false), 3000);
-    } catch (error) {
-      console.error('Error al subir diseños:', error);
-      alert('Ocurrió un error al subir los diseños. Inténtalo de nuevo.');
+      setUploadSuccess(true);
+      setTimeout(() => setUploadSuccess(false), 3500);
+    } catch (err) {
+      console.error('Error al publicar:', err);
+      alert('Ocurrió un error: ' + err.message);
     } finally {
       setIsUploading(false);
     }
@@ -270,20 +308,15 @@ function SubirDiseños({ onBack, userData, onOpenWorkspace }) {
 
   return (
     <div className="subir-page">
-
-      {/* Header */}
       <div className="subir-header">
         <button className="subir-back-btn" onClick={onBack}>
-          <ArrowLeft size={20} />
-          <span>Volver</span>
+          <ArrowLeft size={20} /><span>Volver</span>
         </button>
         <h1 className="subir-title">Subir Diseños</h1>
         <div style={{ width: 100 }} />
       </div>
 
-      {/* Contenido */}
       <div className="subir-content">
-
         {/* Zona de arrastre */}
         <div
           className={`profile-upload-section subir-drop-zone ${isDragging ? 'subir-drop-zone--dragging' : ''}`}
@@ -291,153 +324,85 @@ function SubirDiseños({ onBack, userData, onOpenWorkspace }) {
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
         >
-          <div className="profile-upload-icon">
-            <Upload size={36} />
-          </div>
-
+          <div className="profile-upload-icon"><Upload size={36} /></div>
           <h3 className="profile-upload-title">Sube tus diseños</h3>
-          <p className="profile-upload-subtitle">
-            Arrastra y suelta archivos, o elige cómo quieres subirlos
-          </p>
+          <p className="profile-upload-subtitle">Arrastra archivos aquí, o elige cómo subirlos</p>
 
           <div className="profile-upload-buttons">
-            {/* Subir como posts individuales */}
-            <button
-              className="profile-upload-btn"
-              onClick={() => uploadInputRef.current?.click()}
-              disabled={isUploading}
-              title="Cada imagen se convierte en un post separado"
-            >
-              <Grid size={20} />
-              Posts individuales
+            <button className="profile-upload-btn" onClick={() => uploadInputRef.current?.click()} disabled={isUploading} title="Cada imagen = un post separado">
+              <Grid size={20} /> Posts individuales
             </button>
-
-            {/* Subir como carrusel */}
-            <button
-              className="profile-upload-btn profile-upload-btn-secondary"
-              onClick={() => document.getElementById('carousel-input')?.click()}
-              disabled={isUploading}
-              title="Todas las imágenes en un solo post con carrusel"
-            >
-              <Layers size={20} />
-              Subir como carrusel
+            <button className="profile-upload-btn profile-upload-btn-secondary" onClick={() => document.getElementById('carousel-input')?.click()} disabled={isUploading} title="Varias imágenes en un solo post">
+              <Layers size={20} /> Subir como carrusel
             </button>
-
-            {/* Crear lienzo */}
-            <button
-              className="profile-upload-btn profile-upload-btn-secondary"
-              onClick={() => onOpenWorkspace?.()}
-              disabled={isUploading}
-            >
-              <Plus size={20} />
-              Crear Nuevo Lienzo
+            <button className="profile-upload-btn profile-upload-btn-secondary" onClick={() => onOpenWorkspace?.()} disabled={isUploading}>
+              <Plus size={20} /> Crear Nuevo Lienzo
             </button>
           </div>
 
-          {/* Inputs ocultos */}
-          <input ref={uploadInputRef} id="individual-input" type="file"
-            accept="image/*" multiple style={{ display: 'none' }}
-            onChange={handleInputChange} />
+          <input ref={uploadInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleInputChange} />
+          <input id="carousel-input" type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleInputCarousel} />
+          <input ref={addToPostRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleAddToPostInput} />
 
-          <input id="carousel-input" type="file"
-            accept="image/*" multiple style={{ display: 'none' }}
-            onChange={handleInputCarousel} />
-
-          <input ref={addToPostRef} id="add-to-post-input" type="file"
-            accept="image/*" multiple style={{ display: 'none' }}
-            onChange={handleAddToPostInput} />
-
-          <p className="subir-formats-hint">
-            Formatos aceptados: JPG, PNG, WEBP, SVG · Máximo 10 MB por archivo
-          </p>
+          <p className="subir-formats-hint">Formatos aceptados: JPG, PNG, WEBP, SVG · Máximo 10 MB por archivo</p>
         </div>
 
-        {/* Banner de éxito */}
         {uploadSuccess && (
           <div className="subir-success-banner">
-            <CheckCircle size={20} />
-            <span>¡Diseños publicados exitosamente!</span>
+            <CheckCircle size={20} /><span>¡Diseños publicados exitosamente!</span>
           </div>
         )}
 
-        {/* Vista previa de posts */}
         {posts.length > 0 && (
           <div className="subir-preview-section">
-
-            {/* Header de la sección */}
             <div className="subir-preview-header">
               <h3 className="subir-preview-title">
                 <FileText size={20} />
                 {posts.length} {posts.length === 1 ? 'post' : 'posts'} · {totalImages} {totalImages === 1 ? 'imagen' : 'imágenes'}
               </h3>
-
               <div className="subir-preview-actions">
-                {/* Acciones de organización */}
                 {posts.length > 1 && (
-                  <button
-                    className="subir-organize-btn"
-                    onClick={mergeAllIntoCarousel}
-                    title="Unir todos en un solo carrusel"
-                  >
-                    <Layers size={15} />
-                    Unir en carrusel
+                  <button className="subir-organize-btn" onClick={mergeAllIntoCarousel}>
+                    <Layers size={15} /> Unir en carrusel
                   </button>
                 )}
                 {posts.some(p => p.images.length > 1) && (
-                  <button
-                    className="subir-organize-btn subir-organize-btn--secondary"
-                    onClick={splitAllPosts}
-                    title="Separar todas las imágenes en posts individuales"
-                  >
-                    <Grid size={15} />
-                    Separar todo
+                  <button className="subir-organize-btn subir-organize-btn--secondary" onClick={splitAllPosts}>
+                    <Grid size={15} /> Separar todo
                   </button>
                 )}
-
-                {/* Botón publicar */}
-                <button
-                  className="profile-upload-btn subir-submit-btn"
-                  onClick={handleSubmitUploads}
-                  disabled={isUploading}
-                >
-                  {isUploading ? (
-                    <><div className="spinner-small" />Subiendo...</>
-                  ) : (
-                    <><Upload size={18} />Publicar {posts.length > 1 ? `${posts.length} posts` : 'post'}</>
-                  )}
+                <button className="profile-upload-btn subir-submit-btn" onClick={() => setShowModal(true)} disabled={isUploading}>
+                  <Upload size={18} /> Siguiente
                 </button>
               </div>
             </div>
 
-            {/* Grid de posts / carruseles */}
             <div className="subir-preview-grid">
-              {posts.map((post) => (
+              {posts.map(post => (
                 <div key={post.id} className="subir-carousel-item">
                   <CarouselPreview
                     images={post.images}
-                    onRemoveImage={(imgIdx) => removeImageFromPost(post.id, imgIdx)}
+                    onRemoveImage={(idx) => removeImageFromPost(post.id, idx)}
                     onRemovePost={() => removePost(post.id)}
-                    postIndex={posts.indexOf(post)}
-                    totalPosts={posts.length}
                   />
-
-                  {/* Botón para añadir más imágenes a este post (ampliar carrusel) */}
-                  <button
-                    className="carousel-add-more-btn"
-                    onClick={() => openAddToPost(post.id)}
-                    title="Añadir más imágenes a este carrusel"
-                  >
-                    <Plus size={14} />
-                    Añadir al carrusel
+                  <button className="carousel-add-more-btn" onClick={() => openAddToPost(post.id)}>
+                    <Plus size={14} /> Añadir al carrusel
                   </button>
                 </div>
               ))}
             </div>
-
           </div>
         )}
-
       </div>
+
+      {showModal && (
+        <PublishModal
+          posts={posts}
+          onConfirm={handleConfirmPublish}
+          onCancel={() => setShowModal(false)}
+          isUploading={isUploading}
+        />
+      )}
     </div>
   );
 }
