@@ -36,6 +36,11 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
   const [followingList, setFollowingList] = useState([]);
   const [isLoadingFollowing, setIsLoadingFollowing] = useState(false);
 
+  // Modal de "Seguidores"
+  const [followersModalOpen, setFollowersModalOpen] = useState(false);
+  const [followersList, setFollowersList] = useState([]);
+  const [isLoadingFollowers, setIsLoadingFollowers] = useState(false);
+
   // Modal de diseño propio (likes/comentarios)
   const [selectedDesign, setSelectedDesign] = useState(null);
   const [modalLikes, setModalLikes] = useState({ total: 0, liked: false });
@@ -320,6 +325,55 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
     }
   };
 
+  const handleOpenFollowers = async () => {
+    setFollowersModalOpen(true);
+    setIsLoadingFollowers(true);
+    try {
+      const res = await fetch(`${API_URL}/follows/followers/${userDataProp.id_usuario}`);
+      const data = await res.json();
+      const lista = Array.isArray(data) ? data : (data.followers || data.usuarios || []);
+
+      const normalizada = await Promise.all(
+        lista.map(async (item) => {
+          const nombre = item.nombre_usuario || item.seguidor?.nombre_usuario || item.name;
+          const foto = item.foto_perfil || item.seguidor?.foto_perfil || item.avatarImage;
+          const id = item.id_usuario_seguidor || item.id_usuario || item.id;
+
+          if (nombre) {
+            return {
+              id_usuario: id,
+              nombre_usuario: nombre,
+              foto_perfil: foto || null,
+              username: item.username || ('@' + nombre.toLowerCase().replace(/\s+/g, '')),
+            };
+          }
+
+          try {
+            const userRes = await fetch(`${API_URL}/usuarios/${id}`);
+            const userData = await userRes.json();
+            let infoAdicional = {};
+            try { infoAdicional = typeof userData.informacion_adicional === 'string' ? JSON.parse(userData.informacion_adicional) : userData.informacion_adicional || {}; } catch (_) { }
+            return {
+              id_usuario: userData.id_usuario || id,
+              nombre_usuario: userData.nombre_usuario || 'Usuario',
+              foto_perfil: userData.foto_perfil || infoAdicional.foto_perfil || null,
+              username: '@' + (userData.nombre_usuario || 'usuario').toLowerCase().replace(/\s+/g, ''),
+            };
+          } catch (_) {
+            return { id_usuario: id, nombre_usuario: 'Usuario', foto_perfil: null, username: '@usuario' };
+          }
+        })
+      );
+
+      setFollowersList(normalizada);
+    } catch (e) {
+      console.error('Error cargando seguidores:', e);
+      setFollowersList([]);
+    } finally {
+      setIsLoadingFollowers(false);
+    }
+  };
+
   const handleCreateCanvas = () => { if (onOpenWorkspace) onOpenWorkspace(); };
   const handleEditDraft = (design) => { if (onOpenWorkspace) onOpenWorkspace(design); };
   const currentDesigns = activeTab === 'public' ? publicDesigns : privateDesigns;
@@ -440,7 +494,7 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
               <div className="profile-stat-number">{liveStats?.likes?.toLocaleString() || 0}</div>
               <div className="profile-stat-label">Likes</div>
             </div>
-            <div className="profile-stat-item">
+            <div className="profile-stat-item profile-stat-item--clickable" onClick={handleOpenFollowers}>
               <div className="profile-stat-number">{liveStats?.followers?.toLocaleString() || 0}</div>
               <div className="profile-stat-label">Seguidores</div>
             </div>
@@ -605,6 +659,81 @@ export default function UserProfile({ onBack, onLogout, userData: userDataProp, 
                           className="following-visit-btn"
                           onClick={() => {
                             setFollowingModalOpen(false);
+                            if (typeof onOpenPublicProfile === 'function') {
+                              onOpenPublicProfile(user.id_usuario);
+                            }
+                          }}
+                        >
+                          Ver perfil
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Seguidores */}
+      {followersModalOpen && (
+        <div
+          className="following-modal-backdrop"
+          onClick={() => setFollowersModalOpen(false)}
+        >
+          <div
+            className="following-modal"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="following-modal-header">
+              <h3 className="following-modal-title">Seguidores</h3>
+              <button
+                className="following-modal-close"
+                onClick={() => setFollowersModalOpen(false)}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="following-modal-body">
+              {isLoadingFollowers ? (
+                <div className="following-modal-loading">
+                  <div className="spinner"></div>
+                  <p>Cargando...</p>
+                </div>
+              ) : followersList.length === 0 ? (
+                <div className="following-modal-empty">
+                  <Users size={48} color="#d1d5db" />
+                  <p>Aún no tienes seguidores</p>
+                </div>
+              ) : (
+                <ul className="following-list">
+                  {followersList.map((user) => {
+                    const avatar =
+                      user.foto_perfil ||
+                      user.avatarImage ||
+                      'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100';
+                    const name = user.nombre_usuario || user.name || 'Usuario';
+                    const username = user.username || '@' + name.toLowerCase().replace(/\s+/g, '');
+                    return (
+                      <li key={user.id_usuario || user.id} className="following-list-item">
+                        <img
+                          src={avatar}
+                          alt={name}
+                          className="following-avatar"
+                          onError={e => {
+                            e.target.src = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100';
+                          }}
+                        />
+                        <div className="following-user-info">
+                          <span className="following-user-name">{name}</span>
+                          <span className="following-user-username">{username}</span>
+                        </div>
+                        <button
+                          className="following-visit-btn"
+                          onClick={() => {
+                            setFollowersModalOpen(false);
                             if (typeof onOpenPublicProfile === 'function') {
                               onOpenPublicProfile(user.id_usuario);
                             }
