@@ -169,6 +169,7 @@ function PublishModal({ posts, onConfirm, onCancel, isUploading }) {
 ───────────────────────────────────────────────────────── */
 function SubirDiseños({ onBack, userData, onOpenWorkspace }) {
   const uploadInputRef = useRef(null);
+  const carouselInputRef = useRef(null);
   const addToPostRef = useRef(null);
 
   const [isDragging, setIsDragging] = useState(false);
@@ -332,7 +333,7 @@ function SubirDiseños({ onBack, userData, onOpenWorkspace }) {
             <button className="profile-upload-btn" onClick={() => uploadInputRef.current?.click()} disabled={isUploading} title="Cada imagen = un post separado">
               <Grid size={20} /> Posts individuales
             </button>
-            <button className="profile-upload-btn profile-upload-btn-secondary" onClick={() => document.getElementById('carousel-input')?.click()} disabled={isUploading} title="Varias imágenes en un solo post">
+            <button className="profile-upload-btn profile-upload-btn-secondary" onClick={() => carouselInputRef.current?.click()} disabled={isUploading} title="Varias imágenes en un solo post">
               <Layers size={20} /> Subir como carrusel
             </button>
             <button className="profile-upload-btn profile-upload-btn-secondary" onClick={() => onOpenWorkspace?.()} disabled={isUploading}>
@@ -341,7 +342,7 @@ function SubirDiseños({ onBack, userData, onOpenWorkspace }) {
           </div>
 
           <input ref={uploadInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleInputChange} />
-          <input id="carousel-input" type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleInputCarousel} />
+          <input ref={carouselInputRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleInputCarousel} />
           <input ref={addToPostRef} type="file" accept="image/*" multiple style={{ display: 'none' }} onChange={handleAddToPostInput} />
 
           <p className="subir-formats-hint">Formatos aceptados: JPG, PNG, WEBP, SVG · Máximo 10 MB por archivo</p>
